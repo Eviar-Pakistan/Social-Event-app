@@ -31,7 +31,6 @@ ALLOWED_HOSTS = ["51.20.71.150"]
 # settings.py
 CSRF_TRUSTED_ORIGINS = [
     "http://51.20.71.150",
-
 ]
 
 
@@ -55,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware'
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -167,8 +166,10 @@ USE_TZ = True
 # SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True  
+CSRF_COOKIE_SECURE = True    
+CSRF_COOKIE_HTTPONLY = True  
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
