@@ -1,3 +1,4 @@
+const IP = "51.20.71.150"
 // Get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
@@ -54,7 +55,7 @@ signupBtn && signupBtn.addEventListener("click", async (e) => {
     const payload = { username, email, password, contactNo, role, selfie };
 
     try {
-        const response = await fetch("/api/users/signup/", {
+        const response = await fetch(`${IP}/api/users/signup/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -93,7 +94,7 @@ signinBtn && signinBtn.addEventListener("click", async (e) => {
     const payload = { email, password };
 
     try {
-        const response = await fetch("/api/users/signin/", {
+        const response = await fetch(`${IP}/api/users/signin/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
