@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ozmg3*#&g$rxnuzvky!e29q$wz*r^m#--t2!u9$wb!0fuzmhbs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["51.20.71.150"]
 
 
 # Application definition
@@ -159,7 +159,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
