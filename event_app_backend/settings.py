@@ -26,12 +26,12 @@ SECRET_KEY = 'django-insecure-ozmg3*#&g$rxnuzvky!e29q$wz*r^m#--t2!u9$wb!0fuzmhbs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.51.13.200"]
+ALLOWED_HOSTS = ["*"]
 
 # settings.py
-CSRF_TRUSTED_ORIGINS = [
-    "http://13.51.13.200",
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://13.51.13.200",
+# ]
 
 
 # Application definition

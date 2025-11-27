@@ -31,11 +31,14 @@ from django.contrib.gis.geoip2 import GeoIP2
 from django.contrib.gis.geoip2 import GeoIP2
 import ipaddress
 
-def get_region(ip):
-
+def get_region(request):
+    ip = get_client_ip(request)
+    if not ip:
+        return None
+    
     try:
         g = GeoIP2()
-        location = g.city("154.57.213.12")
+        location = g.city(ip)
         return {
             "city": location.get("city", ""),
             "region": location.get("region", ""),
