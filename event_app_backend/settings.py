@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-ozmg3*#&g$rxnuzvky!e29q$wz*r^m#--t2!u9$wb!0fuzmhbs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["51.20.71.150"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -150,7 +150,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 LANGUAGE_CODE = 'en-us'
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 
 TIME_ZONE = 'Asia/Karachi'
 USE_TZ = True
