@@ -29,7 +29,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.gis.geoip2 import GeoIP2
 
 from django.contrib.gis.geoip2 import GeoIP2
-import ipaddress
 
 def get_region(request):
     ip = get_client_ip(request)
