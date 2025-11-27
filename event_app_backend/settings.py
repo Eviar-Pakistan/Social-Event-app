@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["51.20.71.150"]
 # settings.py
 CSRF_TRUSTED_ORIGINS = [
     "http://51.20.71.150",
+
 ]
 
 
@@ -166,10 +167,8 @@ USE_TZ = True
 # SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 
-SESSION_COOKIE_SECURE = False  
-CSRF_COOKIE_SECURE = False    
-CSRF_COOKIE_HTTPONLY = False  
-
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
