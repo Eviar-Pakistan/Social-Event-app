@@ -166,9 +166,9 @@ USE_TZ = True
 # SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 
-SESSION_COOKIE_SECURE = True  
-CSRF_COOKIE_SECURE = True    
-CSRF_COOKIE_HTTPONLY = True  
+SESSION_COOKIE_SECURE = False  
+CSRF_COOKIE_SECURE = False    
+CSRF_COOKIE_HTTPONLY = False  
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
