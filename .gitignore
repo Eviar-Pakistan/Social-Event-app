@@ -1,0 +1,4 @@
+.env
+./event_app_backend/qr.py
+./event_app_backend/qr_generator.py
+./event_app_backend/games encrypted

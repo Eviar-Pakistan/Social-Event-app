@@ -1,0 +1,319 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events - EventHub</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" />
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+ <header class="bg-white shadow p-4 flex justify-between items-center">
+  <div class="flex items-center space-x-4">
+    {% if user.selfie %}
+      <img src="{{ user.selfie.url }}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+    {% else %}
+      <img src="{% static 'images/default-profile.png' %}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+    {% endif %}
+
+    <div>
+      <h2 class="font-semibold text-gray-800 text-lg">{{ user.username }}</h2>
+      <p class="text-sm text-gray-500">{{ user.role }} • New York</p>
+    </div>
+
+    <div class="ml-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+     {% if user.total_points %}
+      {{ user.total_points }} pts
+      {% else %}
+      0 pts
+      {% endif %}
+    </div>
+  </div>
+
+  <button id="helpBtn" class="text-gray-500 hover:text-gray-700">
+    <img src="{% static 'icon/question.png' %}" alt="Help" class="w-6 h-6">
+  </button>
+</header>
+
+<div id="helpPopup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-80 relative shadow-lg">
+    <button id="closeHelp" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <h3 class="text-xl font-bold mb-4">Help</h3>
+    <p class="text-gray-600">If you need assistance, contact support at <a href="mailto:support@eventhub.com" class="text-blue-500 underline">support@eventhub.com</a></p>
+  </div>
+</div>
+
+
+
+
+  <section class="mt-4 px-4">
+  <div class="swiper-container rounded-lg overflow-hidden shadow-lg">
+    <div class="swiper-wrapper">
+      {% for banner in banners %}
+        <div class="swiper-slide">
+          <img src="{% static banner %}" class="w-full object-cover rounded-lg" alt="Banner {{ forloop.counter }}">
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+{% comment %} Agenda {% endcomment %}
+
+<div id="current-agenda" class="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto my-6">
+  <h2 class="text-2xl font-bold mb-4">Current Agenda</h2>
+
+  <div id="agenda-details" class="text-gray-800">
+    Loading current agenda...
+  </div>
+</div>
+
+{% comment %} Leader Board {% endcomment %}
+<div class="bg-gray-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-1">
+
+    <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">
+      🏆 Leaderboard
+    </h1>
+
+    <!-- Header -->
+    <div class="grid grid-cols-6 px-2 py-2 text-gray-600 font-semibold text-sm border-b">
+      <span>Rank</span>
+      <span class="col-span-2">Name</span>
+      <span class="text-center">Region</span>
+      <span class="text-center">Role</span>
+      <span class="text-right">Points</span>
+    </div>
+
+    <div class="divide-y">
+
+      {% for top_3 in top_3_users %}
+<div class="grid grid-cols-6 items-center px-2 py-3 hover:bg-gray-50 transition">
+
+  <p class="font-bold text-yellow-500">#{{ forloop.counter }}</p>
+
+  <div class="col-span-2 flex items-center gap-3">
+    <span class="font-medium text-gray-800">{{ top_3.username }}</span>
+  </div>
+
+  <p class="text-center text-gray-700">North</p>
+
+  <p class="text-center text-gray-700">{{ top_3.role }}</p>
+
+  <p class="text-right font-semibold text-gray-900">{{ top_3.total_points|default:"0" }}</p>
+
+</div>
+{% endfor %}
+
+    </div>
+  </div>
+</div>
+
+
+
+
+  <section class="px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+  <button id="createPostBtn" class="bg-blue-600 w-full text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+  + Create Post
+</button>
+
+</section>
+
+  <section class="mt-6 px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for post in posts %}
+  <div class="bg-white rounded-lg shadow p-4" id="post-{{ post.id }}">
+    {% if post.image %}
+      <img src="{{ post.image.url }}" class="w-full rounded-lg mb-2 object-cover">
+    {% endif %}
+    <p class="text-gray-700 mb-2">{{ post.caption }}</p>
+
+    <!-- Like & Comment -->
+    <div class="flex justify-between items-center">
+<button onclick="toggleLike({{ post.id }})" class="flex items-center space-x-1">
+  {% if post.is_liked_by_user %}
+    <img id="like-icon-{{ post.id }}" src="{% static 'icon/heart.png'%}" class="h-6 w-6" alt="Like">
+  {% else %}
+    <img id="like-icon-{{ post.id }}" src="{% static 'icon/outlineheart.png' %}" class="h-6 w-6" alt="Like">
+  {% endif %}
+  <span id="like-count-{{ post.id }}">{{ post.total_likes }}</span>
+</button>
+
+
+
+      <button onclick="openCommentsModal({{ post.id }})" class="flex items-center space-x-1 text-gray-500 hover:text-green-600">
+        <img src="{% static 'icon/comments.png' %}" class="h-6 w-6" alt="Comments">
+        <span id="comment-count-{{ post.id }}">{{ post.total_comments }}</span>
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+
+<div id="postModal" class="hidden fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div class="bg-white rounded-lg p-6 w-96 relative shadow-lg">
+  <button id="closePostModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+
+  <h3 class="text-xl font-bold mb-4">Create New Post</h3>
+
+  <form action="" method="">
+    {% csrf_token %}
+
+    <label class="block text-gray-700 font-semibold">Caption</label>
+    <textarea name="caption" id="caption" rows="3" class="w-full border rounded-lg p-2 mt-1" required></textarea>
+
+    <label class="block mt-4 text-gray-700 font-semibold">Upload Image</label>
+    <input type="file" id="image" name="image" class="w-full mt-1" accept="image/*">
+
+    <button id="submitPostBtn"
+      type="button" 
+      class="w-full mt-5 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
+      Post
+    </button>
+  </form>
+</div>
+</div>
+
+
+<div id="comments-modal" class="fixed bottom-0 inset-x-0 bg-white shadow-xl transform translate-y-full transition-transform duration-300 hidden z-50 rounded-t-lg max-h-[70vh] overflow-y-auto">
+<div class="p-4 flex justify-between items-center border-b">
+  <h3 class="font-bold text-lg">Comments</h3>
+  <button onclick="closeCommentsModal()" class="text-gray-500 text-2xl">&times;</button>
+</div>
+
+<div id="comments-list" class="p-4 space-y-2">
+</div>
+
+<div class="p-4 border-t flex space-x-2">
+  <input id="comment-input" type="text" class="border rounded px-2 py-1 flex-1" placeholder="Write a comment..."/>
+  <input type="hidden" id="comment-post-id"/>
+  <button onclick="addComment()" class="bg-blue-500 text-white px-3 py-1 rounded">Post</button>
+</div>
+</div>
+
+<!-- QR Scanner Modal -->
+<div id="qrModal" class="fixed hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div class="bg-white w-80 rounded-lg p-4 relative shadow-lg">
+
+  <button id="closeScanner" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
+
+  <h2 class="text-lg font-bold mb-2">Scan QR Code</h2>
+
+  <div id="qr-reader" class="w-full"></div>
+
+
+</div>
+
+
+
+</div>
+
+<div class="fixed bottom-0 left-0 w-full bg-white shadow-lg border-t flex justify-around items-center py-3">
+
+
+  <button id="qrTab" class="relative -mt-10 bg-blue-600 border-4 border-white text-white p-3 rounded-full ">
+        <img src="{% static 'icon/qr.png' %}" class="w-7 h-7" />
+    </button>
+
+   
+
+</div>
+
+
+
+
+<script>
+const agendas = [
+  {% for agenda in agendas %}
+  {
+    name: "{{ agenda.name }}",
+    venue: "{{ agenda.venue }}",
+    dress_code: "{{ agenda.dress_code|default:'' }}",
+    start_time: "{{ agenda.start_time|time:'h:i A' }}",
+    end_time: "{% if agenda.end_time %}{{ agenda.end_time|time:'h:i A' }}{% endif %}"
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+// -------------------------------
+// Convert "7:37 PM" → {hour: 19, minute: 37}
+// -------------------------------
+function parseTime(timeStr) {
+    if (!timeStr) return null;
+
+    const [time, ampm] = timeStr.split(" ");
+    let [h, m] = time.split(":").map(Number);
+
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+
+    return { hour: h, minute: m };
+}
+
+// -------------------------------
+// Compare using minutes only
+// -------------------------------
+function isTimeInRange(now, start, end) {
+    const nowM = now.getHours() * 60 + now.getMinutes();
+    const startM = start.hour * 60 + start.minute;
+    const endM = end ? (end.hour * 60 + end.minute) : null;
+
+    if (!endM) return nowM >= startM;
+    return nowM >= startM && nowM <= endM;
+}
+
+// -------------------------------
+// Check which agenda is active
+// -------------------------------
+function updateCurrentAgenda() {
+    const now = new Date();
+    let current = null;
+
+    for (const agenda of agendas) {
+        const start = parseTime(agenda.start_time);
+        const end = agenda.end_time ? parseTime(agenda.end_time) : null;
+
+        if (isTimeInRange(now, start, end)) {
+            current = agenda;
+            break;
+        }
+    }
+
+    const c = document.getElementById("agenda-details");
+
+    if (current) {
+        c.innerHTML = `
+            <p><strong>Name:</strong> ${current.name}</p>
+            <p><strong>Venue:</strong> ${current.venue}</p>
+            <p><strong>Dress Code:</strong> ${current.dress_code || 'N/A'}</p>
+            <p><strong>Time:</strong> ${current.start_time}${current.end_time ? " - " + current.end_time : ""}</p>
+        `;
+    } else {
+        c.innerHTML = "<p>No agenda is currently running.</p>";
+    }
+}
+
+// Run every 3 seconds
+updateCurrentAgenda();
+setInterval(updateCurrentAgenda, 3000);
+</script>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="{% static  'js/event.js' %}"></script>
+
+</body>
+</html>
