@@ -87,15 +87,14 @@ if len(QR_SECRET_KEY) not in [16, 24, 32]:
     raise ValueError("QR_SECRET_KEY must be 16, 24, or 32 characters")
 
 
+# settings.py
 STATIC_URL = '/static/'
 
-# During development: additional directories to look for static files
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # your project-level static folder
-]
+# For development
+STATICFILES_DIRS = [BASE_DIR / "static"]  # where you put your JS/CSS
 
-# Where collectstatic will put static files for production
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # production-only, can be empty during development
+# For production
+STATIC_ROOT = BASE_DIR / "staticfiles"  # directory where collectstatic copies files
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
