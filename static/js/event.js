@@ -247,16 +247,51 @@ async function addComment() {
 // Scan Qr
 const qrTab = document.getElementById("qrTab");
 
-qrTab && qrTab.addEventListener("click", () => {
-    const token = localStorage.getItem("access_token");
-    const qrModal = document.getElementById("qrModal");
-    const closeScanner = document.getElementById("closeScanner");
+const qrModal = document.getElementById("qrModal");
+const closeScanner = document.getElementById("closeScanner");
+let html5QrCode = null;
 
-    qrModal.classList.remove("hidden");
+function stopQrScannerAndClose() {
+    if (!qrModal) return;
 
-    let html5QrCode = new Html5Qrcode("qr-reader");
+    if (html5QrCode) {
+        try {
+            // stop() returns a promise; hide modal regardless of success/failure
+            html5QrCode.stop()
+                .catch(() => {})
+                .finally(() => {
+                    qrModal.classList.add("hidden");
+                });
+        } catch (err) {
+            console.error("Error stopping QR scanner:", err);
+            qrModal.classList.add("hidden");
+        }
+    } else {
+        // No scanner instance yet; just hide the modal
+        qrModal.classList.add("hidden");
+    }
+}
 
-    function startScanner() {
+if (closeScanner && qrModal) {
+    // Close when clicking the X button
+    closeScanner.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        stopQrScannerAndClose();
+    });
+}
+
+if (qrTab && qrModal) {
+    qrTab.addEventListener("click", () => {
+        const token = localStorage.getItem("access_token");
+
+        qrModal.classList.remove("hidden");
+
+        // Create scanner instance if needed
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader");
+        }
+
         const config = { fps: 10, qrbox: 250 };
 
         html5QrCode.start(
@@ -280,29 +315,20 @@ qrTab && qrTab.addEventListener("click", () => {
 
                     if (data.status === "success") {
                         showToast(data.message, "success");
-                        html5QrCode.stop();
-                        qrModal.classList.add("hidden");
+                        stopQrScannerAndClose();
                         setTimeout(() => window.location.reload(), 3000);
-
                     } else {
                         showToast(data.message, "error");
-                        html5QrCode.stop();
-                        qrModal.classList.add("hidden");
+                        stopQrScannerAndClose();
                     }
                 } catch (err) {
                     console.error(err);
+                    stopQrScannerAndClose();
                 }
             }
         );
-    }
-
-    startScanner();
-    
-    closeScanner.addEventListener("click", () => {
-        html5QrCode.stop();
-        qrModal.classList.add("hidden");
     });
-});
+}
 
 
 
