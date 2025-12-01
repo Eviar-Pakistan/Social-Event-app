@@ -1,7 +1,5 @@
 from django.urls import path
 from .views import events_view,create_post,add_comment,like_post,get_comments,submit_qr
-from django.conf.urls.static import static
-from django.conf import settings
 
 urlpatterns = [
 path('',events_view, name='events'),
@@ -13,4 +11,3 @@ path("submit-qr/", submit_qr, name="submit_qr"),
 
 
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
