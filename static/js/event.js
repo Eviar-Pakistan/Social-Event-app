@@ -37,34 +37,8 @@ function showToast(message, type = "error") {
     });
 }
 
- const helpBtn = document.getElementById('helpBtn');
-    const helpPopup = document.getElementById('helpPopup');
-    const closeHelp = document.getElementById('closeHelp');
-
-    helpBtn.addEventListener('click', () => helpPopup.classList.remove('hidden'));
-    closeHelp.addEventListener('click', () => helpPopup.classList.add('hidden'));
-
-    const swiper = new Swiper('.swiper-container', {
-      loop: true,
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
-      autoplay: {
-        delay: 3000,
-      },
-    });
-
-const createPostBtn = document.getElementById('createPostBtn');
-const postModal = document.getElementById('postModal');
-const closePostModal = document.getElementById('closePostModal');
-
-createPostBtn.addEventListener('click', () => postModal.classList.remove('hidden'));
-closePostModal.addEventListener('click', () => postModal.classList.add('hidden'));
+// Modal handlers are now in the HTML template
+// Keeping this file for API functions only
 
 
 const submitPostBtn = document.getElementById('submitPostBtn');
@@ -92,14 +66,43 @@ submitPostBtn.addEventListener('click', async () => {
         const data = await response.json();
         if (data.status === "success") {
             showToast("Post created successfully", "success");
+            // Reset button state
+            const submitBtn = document.getElementById('submitPostBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post';
+                submitBtn.style.opacity = '1';
+            }
+            // Close modal
+            const postModal = document.getElementById('postModal');
+            if (postModal) postModal.classList.add('hidden');
+            // Reset form
+            document.getElementById('caption').value = '';
+            document.getElementById('image').value = '';
+            const preview = document.getElementById('image-preview');
+            if (preview) preview.remove();
             setTimeout(() => window.location.reload(), 1500);
         } else {
             showToast(data.message, "error");
+            // Reset button state on error
+            const submitBtn = document.getElementById('submitPostBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post';
+                submitBtn.style.opacity = '1';
+            }
         }
 
     } catch (error) {
         console.error("Post creation error:", error);
         showToast("An unexpected error occurred. Please try again.", "error");
+        // Reset button state on error
+        const submitBtn = document.getElementById('submitPostBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post';
+            submitBtn.style.opacity = '1';
+        }
     }
 });
 
@@ -107,22 +110,34 @@ submitPostBtn.addEventListener('click', async () => {
 async function toggleLike(postId) {
     const token = localStorage.getItem("access_token");
 
-    const res = await fetch(`/api/events/${postId}/like/`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}`
-        ,"X-CSRFToken": csrftoken
-    }
-    });
-    const data = await res.json();
-
-    if (data.status === "success") {
-        document.getElementById(`like-count-${postId}`).innerText = data.total_likes;
-        const icon = document.getElementById(`like-icon-${postId}`);
-        if (data.message === "Post liked") {
-            icon.src = "/static/icon/heart.png";
-        } else {
-            icon.src = "/static/icon/outlineheart.png";
+    try {
+        const res = await fetch(`/api/events/${postId}/like/`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}`
+            ,"X-CSRFToken": csrftoken
         }
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+            document.getElementById(`like-count-${postId}`).innerText = data.total_likes;
+            const icon = document.getElementById(`like-icon-${postId}`);
+            const likeBtn = icon.closest('.like-btn');
+            
+            if (data.message === "Post liked") {
+                icon.src = "/static/icon/heart.png";
+                if (likeBtn) likeBtn.classList.add("active");
+                showToast("Post liked! ❤️", "success");
+            } else {
+                icon.src = "/static/icon/outlineheart.png";
+                if (likeBtn) likeBtn.classList.remove("active");
+            }
+        } else {
+            showToast(data.message || "Something went wrong", "error");
+        }
+    } catch (error) {
+        console.error("Like error:", error);
+        showToast("Failed to like post. Please try again.", "error");
     }
 }
 
@@ -130,8 +145,7 @@ async function toggleLike(postId) {
 // Comments Modal
 function openCommentsModal(postId) {
     const modal = document.getElementById("comments-modal");
-    modal.classList.remove("translate-y-full", "hidden");
-    modal.classList.add("translate-y-0", "block");
+    modal.classList.remove("hidden");
 
     loadComments(postId);
 }
@@ -139,8 +153,7 @@ function openCommentsModal(postId) {
 // Close Modal
 function closeCommentsModal() {
     const modal = document.getElementById("comments-modal");
-    modal.classList.remove("translate-y-0");
-    modal.classList.add("translate-y-full");
+    modal.classList.add("hidden");
 }
 
 // Load comments from backend
@@ -160,20 +173,21 @@ async function loadComments(postId) {
     data.comments.forEach(comment => {
         console.log(comment);
         const div = document.createElement("div");
-        div.className = "flex items-start space-x-2 p-2 border rounded";
+        div.className = "comment-item-modern";
 
         const profileImg = document.createElement("img");
         profileImg.src = comment.profile_picture || "/static/images/default-profile.png";
         profileImg.alt = comment.user;
-        profileImg.className = "w-8 h-8 rounded-full object-cover";
+        profileImg.className = "comment-avatar-modern";
 
         const contentDiv = document.createElement("div");
+        contentDiv.className = "comment-content-modern";
         contentDiv.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <strong>${comment.user}</strong>
-                <span class="text-gray-400 text-sm">${comment.time_ago}</span>
+            <div class="comment-author-modern">
+                ${comment.user}
+                <span class="comment-time-modern">${comment.time_ago}</span>
             </div>
-            <p>${comment.content}</p>
+            <p class="comment-text-modern">${comment.content}</p>
         `;
 
         div.appendChild(profileImg);
@@ -181,7 +195,7 @@ async function loadComments(postId) {
         commentsList.appendChild(div);
     });
 } else {
-    commentsList.innerHTML = "<p class='text-gray-500'>No comments yet.</p>";
+    commentsList.innerHTML = "<div class='empty-state-modern'><div class='empty-icon'>💬</div><div class='empty-title'>No comments yet</div><div class='empty-text'>Be the first to comment!</div></div>";
 }
 
         document.getElementById("comment-post-id").value = postId;
@@ -189,7 +203,6 @@ async function loadComments(postId) {
         // Show modal
         const modal = document.getElementById("comments-modal");
         modal.classList.remove("hidden");
-        modal.classList.remove("translate-y-full");
 
     } catch (error) {
         console.error("Error loading comments:", error);
@@ -220,9 +233,13 @@ async function addComment() {
             input.value = "";
             loadComments(postId);
             document.getElementById(`comment-count-${postId}`).innerText = data.total_comments;
+            showToast("Comment added successfully!", "success");
+        } else {
+            showToast(data.message || "Failed to add comment", "error");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Comment error:", err);
+        showToast("An error occurred while adding comment", "error");
     }
 }
 

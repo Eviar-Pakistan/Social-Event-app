@@ -1,68 +1,484 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - EventHub</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up - Walls Ice Cream Events</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{% static 'css/walls-brand.css' %}" />
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-</head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-4">
+    <style>
+      /* --- FONT STYLE 1: MODERN & GEOMETRIC (MATCHING LOGIN) --- */
 
-  <div class="w-full max-w-md shadow-lg bg-white rounded-lg">
-    <div class="text-center p-6">
-      <h1 class="text-3xl font-bold">EventHub</h1>
-      <p class="text-gray-500">Join the community and share your events</p>
-    </div>
+      /* PAGE BACKGROUND – Vanilla tone (MATCHES LOGIN) */
+      body {
+        background: #f4eadc;
+        min-height: 100vh;
+        font-family: "Montserrat", sans-serif; /* Use Montserrat for overall body */
+        padding: 20px 0;
+      }
 
-    <div class="p-6">
-      <form id="signupForm" class="space-y-4" enctype="multipart/form-data">
-         {% csrf_token %}
-        <div>
-          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-          <input id="name" type="text" placeholder="John Doe" class="mt-1 block w-full border rounded-md p-2" required>
+      /* CARD BACKGROUND – Clean white (MATCHES LOGIN) */
+      .auth-card {
+        background-color: #ffffff;
+        border-radius: 20px; /* Matched border-radius */
+        padding: 28px; /* Matched padding */
+        box-shadow: 0 6px 18px rgba(33, 39, 33, 0.15); /* Matched shadow */
+        border: 1px solid rgba(33, 39, 33, 0.1); /* Matched border */
+        max-width: 500px; /* Kept max-width from original signup */
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      /* Scrollbar styling (kept from original signup) */
+      .auth-card::-webkit-scrollbar {
+        width: 6px;
+      }
+      .auth-card::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .auth-card::-webkit-scrollbar-thumb {
+        background: rgba(33, 39, 33, 0.2);
+        border-radius: 3px;
+      }
+      .auth-card::-webkit-scrollbar-thumb:hover {
+        background: rgba(33, 39, 33, 0.3);
+      }
+      .auth-card {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(33, 39, 33, 0.2) transparent;
+      }
+
+      /* Heading – Outfit for premium geometric visual impact (MATCHES LOGIN) */
+      .heading-primary {
+        font-family: "Outfit", sans-serif !important;
+        font-weight: 700;
+        font-size: 36px;
+        letter-spacing: -1px;
+        color: #212121;
+      }
+
+      /* Input Labels – Montserrat Semi-Bold/Uppercase (MATCHES LOGIN) */
+      .form-label {
+        display: block;
+        font-family: "Montserrat", sans-serif !important;
+        font-weight: 600; /* Bolder label */
+        font-size: 13px; /* Smaller, punchier label */
+        margin-bottom: 4px;
+        color: #212121;
+        letter-spacing: 0.5px; /* Wider spacing for distinction */
+        text-transform: uppercase; /* Use uppercase for geometric feel */
+      }
+
+      /* Input Field Styling (MATCHES LOGIN) */
+      .form-input {
+        background-color: #f7f7f7 !important;
+        border: 1px solid #cccccc;
+        padding: 12px 14px;
+        width: 100%;
+        border-radius: 10px;
+        margin-top: 6px;
+        color: #212121;
+        font-family: "Montserrat", sans-serif;
+        font-size: 15px; /* Slightly larger input text */
+        transition: all 0.2s ease;
+      }
+
+      .form-input:focus {
+        background-color: #ffffff !important;
+        border-color: var(--heart-red);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(228, 30, 47, 0.28);
+      }
+
+      .form-group {
+        margin-bottom: 20px; /* Matched margin */
+      }
+
+      /* Subtext + Link Styling (Montserrat) (MATCHES LOGIN) */
+      .auth-link-red {
+        color: var(--heart-red) !important;
+        font-weight: 700;
+        text-decoration: none; /* No underline, bold text instead */
+        transition: all 0.3s ease;
+        font-family: "Montserrat", sans-serif;
+        display: inline-block;
+      }
+
+      .auth-link-red:hover {
+        color: #c11a28 !important;
+        transform: translateY(-2px);
+        text-shadow: 0 2px 4px rgba(228, 30, 47, 0.2);
+        text-decoration: underline; /* Add underline on hover */
+      }
+
+      /* Buttons (Outfit) (MATCHES LOGIN) */
+      .btn-primary {
+        font-family: "Outfit", sans-serif !important;
+        font-weight: 600;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+        padding: 12px 16px; /* Taller button */
+        border-radius: 12px !important; /* Rounder corners */
+      }
+
+      /* Secondary button style for camera/upload */
+      .btn-secondary {
+        font-family: "Montserrat", sans-serif !important;
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.2px;
+        color: #212121;
+        background-color: #f7f7f7;
+        border: 1px solid #cccccc;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+      }
+      .btn-secondary:hover {
+        background-color: #ffffff;
+        border-color: #a8a8a8;
+      }
+      /* Small text styling for consistency */
+      small {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div class="auth-card" style="width: 100%">
+      <div
+        class="text-center"
+        style="
+          padding-bottom: 24px;
+          border-bottom: 2px solid var(--ice);
+          margin-bottom: 24px;
+        "
+      >
+        <div class="flex justify-center mb-4">
+          <img
+            src="{% static 'icon/walls.png' %}"
+            alt="Walls Logo"
+            style="height: 80px; width: auto; object-fit: contain"
+          />
         </div>
+        <h1 class="heading-primary" style="margin-bottom: 8px">Welcome</h1>
+        <p
+          style="
+            color: var(--corporate-black);
+            opacity: 0.75;
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+          "
+        >
+          Join the community and share your events
+        </p>
+      </div>
 
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-          <input id="email" type="email" placeholder="you@example.com" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-
-        <div>
-          <label for="contact" class="block text-sm font-medium text-gray-700">Contact</label>
-          <input id="contact" type="tel" placeholder="+1234567890" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-
-        <div>
-          <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-          <input id="role" type="text" placeholder="Organizer" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input id="password" type="password" placeholder="••••••••" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-
-        <div>
-          <label for="selfie" class="block text-sm font-medium text-gray-700">Upload a Selfie</label>
-          <input id="selfie" type="file" accept="image/*" class="mt-1 block w-full" required>
-          <img id="selfiePreview" class="mt-2 w-24 h-24 object-cover rounded-full border hidden" />
-        </div>
-
-        <button type="button" id="signupBtn" class="w-full bg-blue-600 text-white py-2 rounded-md">Sign Up</button>
-      </form>
       <div>
-          <p class="text-center text-sm text-gray-600 mt-4">
-              Already have an account?
-              <a href="/api/users/signin/" class="text-blue-600 hover:underline">Sign In</a>
-          </p>
-    </div>
-  </div>
+        <form
+          id="signupForm"
+          enctype="multipart/form-data"
+          onsubmit="return false;"
+        >
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="name" class="form-label">Name</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="John Doe"
+              class="form-input"
+              required
+              autocomplete="name"
+              pattern="[A-Za-z ]+"
+              title="Name can only contain letters and spaces"
+            />
+          </div>
 
-  <script src="{% static 'js/auth.js' %}"></script>
-  <script>
-  </script>
-</body>
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              class="form-input"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="contact" class="form-label">Contact Number</label>
+            <input
+              id="contact"
+              type="tel"
+              placeholder="03XXXXXXXXX"
+              class="form-input"
+              required
+              pattern="03[0-9]{9}"
+              maxlength="11"
+              autocomplete="tel"
+            />
+            <small
+              style="
+                color: var(--corporate-black);
+                opacity: 0.6;
+                font-size: 12px;
+                display: block;
+                margin-top: 4px;
+              "
+            >
+              Must start with 03 and be 11 digits (e.g., 03001234567)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="role" class="form-label">Role</label>
+            <input
+              id="role"
+              type="text"
+              placeholder="Organizer"
+              class="form-input"
+              required
+              autocomplete="organization-title"
+            />
+          </div>
+
+          <input id="region" type="hidden" value="" />
+
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              class="form-input"
+              required
+              autocomplete="new-password"
+              minlength="6"
+            />
+            <small
+              style="
+                color: var(--corporate-black);
+                opacity: 0.6;
+                font-size: 12px;
+                display: block;
+                margin-top: 4px;
+              "
+            >
+              Must be at least 6 characters long
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="selfie" class="form-label">Profile Picture</label>
+            <div style="display: flex; gap: 12px; margin-bottom: 12px">
+              <button
+                type="button"
+                id="cameraBtn"
+                class="btn-secondary"
+                style="flex: 1; padding: 12px"
+              >
+                📷 Take Photo
+              </button>
+              <button
+                type="button"
+                id="uploadBtn"
+                class="btn-secondary"
+                style="flex: 1; padding: 12px"
+              >
+                📁 Upload Image
+              </button>
+            </div>
+            <input
+              id="selfie"
+              type="file"
+              accept="image/*"
+              class="form-input"
+              style="padding: 8px; display: none"
+              required
+            />
+            <video
+              id="video"
+              autoplay
+              style="
+                display: none;
+                width: 100%;
+                max-width: 300px;
+                border-radius: 8px;
+                margin: 12px 0;
+              "
+            ></video>
+            <canvas id="canvas" style="display: none"></canvas>
+            <div id="cameraControls" style="display: none; margin: 12px 0">
+              <button
+                type="button"
+                id="captureBtn"
+                class="btn-primary"
+                style="width: 100%; margin-bottom: 8px"
+              >
+                Capture Photo
+              </button>
+              <button
+                type="button"
+                id="cancelCameraBtn"
+                class="btn-secondary"
+                style="width: 100%"
+              >
+                Cancel
+              </button>
+            </div>
+            <img
+              id="selfiePreview"
+              style="
+                margin-top: 12px;
+                width: 96px;
+                height: 96px;
+                object-fit: cover;
+                border-radius: 50%;
+                border: 2px solid var(--ice);
+                display: none;
+              "
+            />
+          </div>
+
+          <button
+            type="button"
+            id="signupBtn"
+            class="btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            <span id="signupBtnText">Sign Up</span>
+            <span id="signupBtnLoader" style="display: none"
+              >Processing...</span
+            >
+          </button>
+        </form>
+        <div style="margin-top: 24px">
+          <p
+            style="
+              text-align: center;
+              font-size: 14px;
+              color: var(--corporate-black);
+              opacity: 0.7;
+              font-family: 'Montserrat', sans-serif;
+            "
+          >
+            Already have an account?
+            <a href="/api/users/signin/" class="auth-link-red">Sign In</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script>
+      let stream = null;
+      const selfieInput = document.getElementById("selfie");
+      const selfiePreview = document.getElementById("selfiePreview");
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const cameraBtn = document.getElementById("cameraBtn");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const captureBtn = document.getElementById("captureBtn");
+      const cancelCameraBtn = document.getElementById("cancelCameraBtn");
+      const cameraControls = document.getElementById("cameraControls");
+
+      // Upload button - trigger file input
+      uploadBtn.addEventListener("click", function () {
+        selfieInput.click();
+        video.style.display = "none";
+        cameraControls.style.display = "none";
+        stopCamera();
+      });
+
+      // Camera button - start camera
+      cameraBtn.addEventListener("click", async function () {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+          });
+          video.srcObject = stream;
+          video.style.display = "block";
+          cameraControls.style.display = "block";
+          selfieInput.style.display = "none";
+          selfiePreview.style.display = "none";
+        } catch (err) {
+          console.error("Error accessing camera:", err);
+          alert(
+            "Unable to access camera. Please check permissions or use upload instead."
+          );
+        }
+      });
+
+      // Capture photo
+      captureBtn.addEventListener("click", function () {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+
+        // Convert canvas to blob and create file
+        canvas.toBlob(
+          function (blob) {
+            const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            selfieInput.files = dataTransfer.files;
+
+            // Show preview
+            selfiePreview.src = canvas.toDataURL();
+            selfiePreview.style.display = "block";
+
+            // Stop camera and hide video
+            stopCamera();
+            video.style.display = "none";
+            cameraControls.style.display = "none";
+          },
+          "image/jpeg",
+          0.9
+        );
+      });
+
+      // Cancel camera
+      cancelCameraBtn.addEventListener("click", function () {
+        stopCamera();
+        video.style.display = "none";
+        cameraControls.style.display = "none";
+      });
+
+      // Stop camera stream
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+      }
+
+      // Preview uploaded image
+      selfieInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            selfiePreview.src = e.target.result;
+            selfiePreview.style.display = "block";
+            video.style.display = "none";
+            cameraControls.style.display = "none";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+  </body>
 </html>

@@ -2,318 +2,798 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Events - EventHub</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <title>Events - Walls Ice Cream</title>
 
-  <!-- Swiper CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" />
-</head>
-<body class="bg-gray-100 min-h-screen font-sans">
+    <!-- Modern UI CSS -->
+    <link rel="stylesheet" href="{% static 'css/modern-ui.css' %}?v=2" />
 
- <header class="bg-white shadow p-4 flex justify-between items-center">
-  <div class="flex items-center space-x-4">
-    {% if user.selfie %}
-      <img src="{{ user.selfie.url }}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
-    {% else %}
-      <img src="{% static 'images/default-profile.png' %}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
-    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css"
+    />
 
-    <div>
-      <h2 class="font-semibold text-gray-800 text-lg">{{ user.username }}</h2>
-      <p class="text-sm text-gray-500">{{ user.role }} • {{user.region}}</p>
-    </div>
-
-    <div class="ml-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-     {% if user.total_points %}
-      {{ user.total_points }} pts
-      {% else %}
-      0 pts
-      {% endif %}
-    </div>
-  </div>
-
-  <button id="helpBtn" class="text-gray-500 hover:text-gray-700">
-    <img src="{% static 'icon/question.png' %}" alt="Help" class="w-6 h-6">
-  </button>
-</header>
-
-<div id="helpPopup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 w-80 relative shadow-lg">
-    <button id="closeHelp" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-    <h3 class="text-xl font-bold mb-4">Help</h3>
-    <p class="text-gray-600">If you need assistance, contact support at <a href="mailto:support@eventhub.com" class="text-blue-500 underline">support@eventhub.com</a></p>
-  </div>
-</div>
-
-
-
-
-  <section class="mt-4 px-4">
-  <div class="swiper-container rounded-lg overflow-hidden shadow-lg">
-    <div class="swiper-wrapper">
-      {% for banner in banners %}
-        <div class="swiper-slide">
-          <img src="{% static banner %}" class="w-full object-cover rounded-lg" alt="Banner {{ forloop.counter }}">
-        </div>
-      {% endfor %}
-    </div>
-
-  </div>
-</section>
-
-{% comment %} Agenda {% endcomment %}
-
-<div id="current-agenda" class="bg-white rounded-xl shadow p-6 max-w-3xl mx-auto my-6">
-  <h2 class="text-2xl font-bold mb-4">Current Agenda</h2>
-
-  <div id="agenda-details" class="text-gray-800">
-    Loading current agenda...
-  </div>
-</div>
-
-{% comment %} Leader Board {% endcomment %}
-<div class="bg-gray-100 flex items-center justify-center p-4">
-  <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-1">
-
-    <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">
-      🏆 Leaderboard
-    </h1>
-
+    <style>
+      body {
+        padding-bottom: 100px;
+      }
+    </style>
+  </head>
+  <body>
     <!-- Header -->
-    <div class="grid grid-cols-6 px-2 py-2 text-gray-600 font-semibold text-sm border-b">
-      <span>Rank</span>
-      <span class="col-span-2">Name</span>
-      <span class="text-center">Region</span>
-      <span class="text-center">Role</span>
-      <span class="text-right">Points</span>
+    <header class="app-header">
+      <!-- Left Section: User Info -->
+      <div class="header-left">
+        <div class="user-info">
+          <div class="user-info-with-avatar">
+            <div class="profile-dropdown-left">
+              <div
+                class="profile-mini-left"
+                id="profileMenuBtnLeft"
+                style="cursor: pointer"
+              >
+                {% if user.selfie %}
+                <img
+                  src="{{ user.selfie.url }}"
+                  alt="Profile"
+                  class="user-profile-avatar"
+                />
+                {% else %}
+                <div
+                  class="user-profile-avatar user-profile-avatar-placeholder"
+                >
+                  {{ user.username|first|upper }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="profile-dropdown-menu-left" id="profileMenuLeft">
+                <button
+                  class="profile-dropdown-item logout"
+                  onclick="handleLogout()"
+                >
+                 
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+            <div class="user-name-details">
+              <span class="user-name-header">{{ user.username }}</span>
+              <span class="user-details-header"
+                >{{ user.role|default:"Member" }} •
+                {{user.region|default:"Unknown"}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Section: Logo and Title -->
+      <div class="header-center">
+        <div class="logo-container">
+          <img
+            src="{% static 'icon/walls.png' %}"
+            alt="Walls Logo"
+            class="walls-logo"
+          />
+        </div>
+      </div>
+
+      <!-- Right Section: Points, Help -->
+      <div class="header-right">
+        <div class="points-display">
+          {% if user.total_points %}{{ user.total_points }}{% else %}0{% endif%}
+          pts
+        </div>
+        <button
+          id="helpBtn"
+          class="modal-close-modern help-btn-header"
+          title="Help"
+        >
+          ?
+        </button>
+      </div>
+
+      <!-- Mobile Row 2: User Info (Left) and Actions (Right) - Only visible on mobile -->
+      <div class="header-row-2">
+        <!-- Left Section: User Info -->
+        <div class="header-left-mobile">
+          <div class="user-info">
+            <div class="user-info-with-avatar">
+              <div class="profile-dropdown-left">
+                <div
+                  class="profile-mini-left"
+                  id="profileMenuBtnLeftMobile"
+                  style="cursor: pointer"
+                  onclick="var m=document.getElementById('profileMenuLeftMobile'); if(m){ m.classList.toggle('show'); }"
+                >
+                  {% if user.selfie %}
+                  <img
+                    src="{{ user.selfie.url }}"
+                    alt="Profile"
+                    class="user-profile-avatar"
+                  />
+                  {% else %}
+                  <div
+                    class="user-profile-avatar user-profile-avatar-placeholder"
+                  >
+                    {{ user.username|first|upper }}
+                  </div>
+                  {% endif %}
+                </div>
+                <div
+                  class="profile-dropdown-menu-left show"
+                  id="profileMenuLeftMobile"
+                >
+                  <button
+                    class="profile-dropdown-item logout"
+                    onclick="handleLogout()"
+                  >
+                   
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+              <div class="user-name-details">
+                <span class="user-name-header">{{ user.username }}</span>
+                <span class="user-details-header"
+                  >{{ user.role|default:"Member" }} •
+                  {{user.region|default:"Unknown"}}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Section: Points, Help -->
+        <div class="header-right-mobile">
+          <div class="points-display">
+            {% if user.total_points %}{{ user.total_points }}{% else%}0{%endif%}
+            pts
+          </div>
+          <button
+            id="helpBtnMobile"
+            class="modal-close-modern help-btn-header"
+            title="Help"
+          >
+            ?
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Wavy Line Separator -->
+    <div class="wavy-line"></div>
+
+    <!-- Help Modal -->
+    <div id="helpPopup" class="hidden modal-overlay-modern">
+      <div class="modal-content-modern">
+        <div class="modal-header">
+          <h3 class="modal-title-modern">Help & Support</h3>
+          <button id="closeHelp" class="modal-close-modern">&times;</button>
+        </div>
+        <div class="card-content">
+          <p style="margin-bottom: 16px">
+            Need assistance? We're here to help!
+          </p>
+          <p
+            style="
+              color: var(--text-light);
+              font-size: 14px;
+              margin-bottom: 20px;
+            "
+          >
+            Contact us at
+            <a
+              href="mailto:support@wallsevents.com"
+              style="color: var(--accent-red); font-weight: 600"
+              >support@wallsevents.com</a
+            >
+          </p>
+          <div
+            style="
+              border-top: 1px solid var(--border-light);
+              padding-top: 16px;
+              margin-top: 16px;
+            "
+          >
+            <p
+              style="
+                font-weight: 700;
+                color: var(--text-dark);
+                margin-bottom: 12px;
+                font-size: 16px;
+              "
+            >
+              🚨 Emergency Contact Numbers
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <a
+                href="tel:112"
+                style="
+                  color: var(--accent-red);
+                  font-weight: 600;
+                  text-decoration: none;
+                  font-size: 14px;
+                "
+              >
+                📞 Emergency: 112
+              </a>
+              <a
+                href="tel:911"
+                style="
+                  color: var(--accent-red);
+                  font-weight: 600;
+                  text-decoration: none;
+                  font-size: 14px;
+                "
+              >
+                📞 Emergency: 911
+              </a>
+              <a
+                href="tel:+923001234567"
+                style="
+                  color: var(--accent-red);
+                  font-weight: 600;
+                  text-decoration: none;
+                  font-size: 14px;
+                "
+              >
+                📞 Event Helpline: +92 300 1234567
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="divide-y">
+    <!-- Banner Section -->
+    <section class="banner-section">
+      <div class="swiper-container" style="overflow: hidden">
+        <div class="swiper-wrapper">
+          <!-- Event banners -->
+          <div class="swiper-slide">
+            <img
+              src="{% static 'banners/banner1.png' %}"
+              class="banner-image-modern"
+              alt="Event Banner 1"
+              loading="lazy"
+            />
+          </div>
+          <div class="swiper-slide">
+            <img
+              src="{% static 'banners/banner2.png' %}"
+              class="banner-image-modern"
+              alt="Event Banner 2"
+              loading="lazy"
+            />
+          </div>
+          <div class="swiper-slide">
+            <img
+              src="{% static 'banners/banner3.png' %}"
+              class="banner-image-modern"
+              alt="Event Banner 3"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
 
-      {% for top_3 in top_3_users %}
-<div class="grid grid-cols-6 items-center px-2 py-3 hover:bg-gray-50 transition">
-
-  <p class="font-bold text-yellow-500">#{{ forloop.counter }}</p>
-
-  <div class="col-span-2 flex items-center gap-3">
-    <span class="font-medium text-gray-800">{{ top_3.username }}</span>
-  </div>
-
-  <p class="text-center text-gray-700">{{user.region}}</p>
-
-  <p class="text-center text-gray-700">{{ top_3.role }}</p>
-
-  <p class="text-right font-semibold text-gray-900">{{ top_3.total_points|default:"0" }}</p>
-
-</div>
-{% endfor %}
-
+    <!-- Current Agenda -->
+    <div class="agenda-card-modern" id="current-agenda">
+      <h2 class="agenda-title-modern">Current Agenda</h2>
+      <div id="agenda-details">
+        <div class="agenda-item">
+          <span class="agenda-label">Status:</span>
+          <span class="agenda-value">Loading...</span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-
-
-
-  <section class="px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-  <button id="createPostBtn" class="bg-blue-600 w-full text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-  + Create Post
-</button>
-
-</section>
-
-  <section class="mt-6 px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {% for post in posts %}
-  <div class="bg-white rounded-lg shadow p-4" id="post-{{ post.id }}">
-    {% if post.image %}
-      <img src="{{ post.image.url }}" class="w-full rounded-lg mb-2 object-cover">
-    {% endif %}
-    <p class="text-gray-700 mb-2">{{ post.caption }}</p>
-
-    <!-- Like & Comment -->
-    <div class="flex justify-between items-center">
-<button onclick="toggleLike({{ post.id }})" class="flex items-center space-x-1">
-  {% if post.is_liked_by_user %}
-    <img id="like-icon-{{ post.id }}" src="{% static 'icon/heart.png'%}" class="h-6 w-6" alt="Like">
-  {% else %}
-    <img id="like-icon-{{ post.id }}" src="{% static 'icon/outlineheart.png' %}" class="h-6 w-6" alt="Like">
-  {% endif %}
-  <span id="like-count-{{ post.id }}">{{ post.total_likes }}</span>
-</button>
-
-
-
-      <button onclick="openCommentsModal({{ post.id }})" class="flex items-center space-x-1 text-gray-500 hover:text-green-600">
-        <img src="{% static 'icon/comments.png' %}" class="h-6 w-6" alt="Comments">
-        <span id="comment-count-{{ post.id }}">{{ post.total_comments }}</span>
-      </button>
+    <!-- Leaderboard -->
+    <div class="leaderboard-modern">
+      <h2 class="leaderboard-title-modern">
+        <img src="{% static 'icon/leadership.png' %}" alt="Leaderboard" class="leaderboard-title-icon" />
+        <span>Leaderboard</span>
+      </h2>
+      <div id="top3-leaderboard">
+        {% for top_3 in top_3_users %}
+        <div class="leaderboard-item">
+          <!-- Profile Picture -->
+          <div class="leaderboard-profile-pic">
+            {% if top_3.selfie %}
+            <img
+              src="{{ top_3.selfie.url }}"
+              alt="{{ top_3.username }}"
+              class="leaderboard-avatar"
+            />
+            {% else %}
+            <div class="leaderboard-avatar leaderboard-avatar-placeholder">
+              {{ top_3.username|first|upper }}
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- User Info: Name, Role, Region -->
+          <div class="user-info">
+            <div class="user-name">{{ top_3.username }}</div>
+            <div class="user-meta">
+              <span class="user-meta-item">
+                {{ top_3.role|default:"Member" }}, {{ top_3.region|default:"N/A" }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Points Display -->
+          <div class="points-display-large">
+            <div
+              style="
+                font-size: 12px;
+                color: var(--text-light);
+                margin-bottom: 4px;
+                text-align: center;
+              "
+            >
+              Points
+            </div>
+            <div>{{ top_3.total_points|default:"0" }}</div>
+          </div>
+          
+          <!-- Crown Icon -->
+          <div class="crown-container">
+            {% if forloop.counter == 1 %}
+            <div class="crown-badge crown-badge-gold">
+              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#D4AF37" stroke="#B8941F" stroke-width="1.2"/>
+                <circle cx="7" cy="19" r="1.2" fill="#D4AF37"/>
+                <circle cx="12" cy="19" r="1.2" fill="#D4AF37"/>
+                <circle cx="17" cy="19" r="1.2" fill="#D4AF37"/>
+              </svg>
+            </div>
+            {% elif forloop.counter == 2 %}
+            <div class="crown-badge crown-badge-silver">
+              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#9E9E9E" stroke="#757575" stroke-width="1.2"/>
+                <circle cx="7" cy="19" r="1.2" fill="#9E9E9E"/>
+                <circle cx="12" cy="19" r="1.2" fill="#9E9E9E"/>
+                <circle cx="17" cy="19" r="1.2" fill="#9E9E9E"/>
+              </svg>
+            </div>
+            {% elif forloop.counter == 3 %}
+            <div class="crown-badge crown-badge-bronze">
+              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#CD7F32" stroke="#B87333" stroke-width="1.2"/>
+                <circle cx="7" cy="19" r="1.2" fill="#CD7F32"/>
+                <circle cx="12" cy="19" r="1.2" fill="#CD7F32"/>
+                <circle cx="17" cy="19" r="1.2" fill="#CD7F32"/>
+              </svg>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
-  </div>
-  {% endfor %}
-</section>
 
+    <!-- Create Post Section -->
+    <section class="create-post-section">
+      <button id="createPostBtn" class="create-post-btn">+ Create Post</button>
+    </section>
 
-<div id="postModal" class="hidden fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center z-50">
-<div class="bg-white rounded-lg p-6 w-96 relative shadow-lg">
-  <button id="closePostModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <!-- Posts Section -->
+    <h2 class="section-title">Posts</h2>
+    <section class="posts-container">
+      {% if posts %} {% for post in posts %}
+      <article
+        class="post-card-modern"
+        id="post-{{ post.id }}"
+        onclick="openPostDetail({{ post.id }})"
+        style="cursor: pointer"
+      >
+        {% if post.image %}
+        <img
+          src="{{ post.image.url }}"
+          class="post-image-modern"
+          alt="Post image"
+          loading="lazy"
+        />
+        {% endif %}
+        <div class="post-body">
+          <p class="post-caption-modern">{{ post.caption }}</p>
+          <div class="post-actions-modern" onclick="event.stopPropagation();">
+            <button
+              onclick="toggleLike({{ post.id }})"
+              class="action-btn {% if post.is_liked_by_user %}active{% endif %}"
+              aria-label="Like"
+            >
+              {% if post.is_liked_by_user %}
+              <img
+                id="like-icon-{{ post.id }}"
+                src="{% static 'icon/heart.png'%}"
+                class="action-icon"
+                alt="Like"
+              />
+              {% else %}
+              <img
+                id="like-icon-{{ post.id }}"
+                src="{% static 'icon/outlineheart.png' %}"
+                class="action-icon"
+                alt="Like"
+              />
+              {% endif %}
+              <span id="like-count-{{ post.id }}">{{ post.total_likes }}</span>
+            </button>
+            <button
+              onclick="openCommentsModal({{ post.id }})"
+              class="action-btn"
+              aria-label="Comments"
+            >
+              <img
+                src="{% static 'icon/comments.png' %}"
+                class="action-icon"
+                alt="Comments"
+              />
+              <span id="comment-count-{{ post.id }}"
+                >{{ post.total_comments }}</span
+              >
+            </button>
+          </div>
+        </div>
+      </article>
+      {% endfor %} {% else %}
+      <div class="empty-state-modern">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">No posts yet</div>
+        <div class="empty-text">Be the first to share something amazing!</div>
+        <button
+          onclick="document.getElementById('createPostBtn').click()"
+          class="create-post-btn"
+          style="max-width: 300px"
+        >
+          Create First Post
+        </button>
+      </div>
+      {% endif %}
+    </section>
 
-  <h3 class="text-xl font-bold mb-4">Create New Post</h3>
+    <!-- Create Post Modal -->
+    <div id="postModal" class="hidden modal-overlay-modern">
+      <div class="modal-content-modern">
+        <div class="modal-header">
+          <h3 class="modal-title-modern">Create Post</h3>
+          <button id="closePostModal" class="modal-close-modern">
+            &times;
+          </button>
+        </div>
+        <form action="" method="">
+          {% csrf_token %}
+          <div
+            class="form-group-modern"
+            style="display: flex; justify-content: center; margin-bottom: 24px"
+          >
+            <div id="image-upload-container">
+              <div class="image-upload-box" id="imageUploadBox">
+                <svg
+                  class="upload-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="upload-text">Choose Image</span>
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  style="
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0;
+                    cursor: pointer;
+                  "
+                />
+              </div>
+            </div>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Caption</label>
+            <textarea
+              name="caption"
+              id="caption"
+              rows="4"
+              class="form-textarea-modern"
+              placeholder="What's on your mind?"
+              required
+            ></textarea>
+          </div>
+          <button
+            id="submitPostBtn"
+            type="button"
+            class="create-post-btn"
+            style="margin-top: 8px"
+          >
+            Post
+          </button>
+        </form>
+      </div>
+    </div>
 
-  <form action="" method="">
-    {% csrf_token %}
+    <!-- Post Detail Modal -->
+    <div id="postDetailModal" class="hidden post-detail-overlay">
+      <div class="post-detail-modal">
+        <div class="post-detail-header">
+          <h3 class="post-detail-title">Post Details</h3>
+          <button onclick="closePostDetail()" class="modal-close-modern">
+            &times;
+          </button>
+        </div>
+        <div class="post-detail-body" id="postDetailContent">
+          <!-- Post details will be loaded here -->
+        </div>
+      </div>
+    </div>
 
-    <label class="block text-gray-700 font-semibold">Caption</label>
-    <textarea name="caption" id="caption" rows="3" class="w-full border rounded-lg p-2 mt-1" required></textarea>
+    <!-- Comments Modal -->
+    <div id="comments-modal" class="hidden comments-modal-modern">
+      <div class="comments-header-modern">
+        <h3 class="modal-title-modern" style="font-size: 20px; margin: 0">
+          Comments
+        </h3>
+        <button onclick="closeCommentsModal()" class="modal-close-modern">
+          &times;
+        </button>
+      </div>
+      <div id="comments-list" class="comments-list-modern">
+        <!-- Comments will be loaded here -->
+      </div>
+      <div class="comment-input-section-modern">
+        <input
+          id="comment-input"
+          type="text"
+          class="comment-input-modern"
+          placeholder="Write a comment..."
+        />
+        <input type="hidden" id="comment-post-id" />
+        <button onclick="addComment()" class="comment-submit-modern">
+          Post
+        </button>
+      </div>
+    </div>
 
-    <label class="block mt-4 text-gray-700 font-semibold">Upload Image</label>
-    <input type="file" id="image" name="image" class="w-full mt-1" accept="image/*">
+    <!-- QR Scanner Modal -->
+    <div id="qrModal" class="hidden modal-overlay-modern">
+      <div class="modal-content-modern">
+        <div class="modal-header">
+          <h3 class="modal-title-modern">Scan QR Code</h3>
+          <button id="closeScanner" class="modal-close-modern">&times;</button>
+        </div>
+        <div
+          id="qr-reader"
+          style="
+            width: 100%;
+            min-height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-beige);
+          "
+        ></div>
+      </div>
+    </div>
 
-    <button id="submitPostBtn"
-      type="button" 
-      class="w-full mt-5 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
-      Post
+    <!-- Floating QR Button -->
+    <button id="qrTab" class="qr-button-modern" title="Scan QR Code">
+      <img src="{% static 'icon/qr.png' %}" alt="Scan QR" />
     </button>
-  </form>
-</div>
-</div>
 
+    <!-- Agenda Script -->
+    <script>
+      // Static icon paths
+      const iconPaths = {
+        calender: "{% static 'icon/calender.png' %}",
+        location: "{% static 'icon/location.png' %}",
+        formalSuit: "{% static 'icon/formal suit.png' %}",
+        clock: "{% static 'icon/clock.png' %}"
+      };
+      
+      const agendas = [
+        {% for agenda in agendas %}
+        {
+          name: "{{ agenda.name }}",
+          venue: "{{ agenda.venue }}",
+          dress_code: "{{ agenda.dress_code|default:'' }}",
+          start_time: "{{ agenda.start_time|time:'h:i A' }}",
+          end_time: "{% if agenda.end_time %}{{ agenda.end_time|time:'h:i A' }}{% endif %}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ];
 
-<div id="comments-modal" class="fixed bottom-0 inset-x-0 bg-white shadow-xl transform translate-y-full transition-transform duration-300 hidden z-50 rounded-t-lg max-h-[70vh] overflow-y-auto">
-<div class="p-4 flex justify-between items-center border-b">
-  <h3 class="font-bold text-lg">Comments</h3>
-  <button onclick="closeCommentsModal()" class="text-gray-500 text-2xl">&times;</button>
-</div>
+      function parseTime(timeStr) {
+        if (!timeStr) return null;
+        const [time, ampm] = timeStr.split(" ");
+        let [h, m] = time.split(":").map(Number);
+        if (ampm === "PM" && h !== 12) h += 12;
+        if (ampm === "AM" && h === 12) h = 0;
+        return { hour: h, minute: m };
+      }
 
-<div id="comments-list" class="p-4 space-y-2">
-</div>
+      function isTimeInRange(now, start, end) {
+        const nowM = now.getHours() * 60 + now.getMinutes();
+        const startM = start.hour * 60 + start.minute;
+        const endM = end ? (end.hour * 60 + end.minute) : null;
+        if (!endM) return nowM >= startM;
+        return nowM >= startM && nowM <= endM;
+      }
 
-<div class="p-4 border-t flex space-x-2">
-  <input id="comment-input" type="text" class="border rounded px-2 py-1 flex-1" placeholder="Write a comment..."/>
-  <input type="hidden" id="comment-post-id"/>
-  <button onclick="addComment()" class="bg-blue-500 text-white px-3 py-1 rounded">Post</button>
-</div>
-</div>
+      function updateCurrentAgenda() {
+        const now = new Date();
+        let current = null;
 
-<!-- QR Scanner Modal -->
-<div id="qrModal" class="fixed hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-<div class="bg-white w-80 rounded-lg p-4 relative shadow-lg">
-
-  <button id="closeScanner" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
-
-  <h2 class="text-lg font-bold mb-2">Scan QR Code</h2>
-
-  <div id="qr-reader" class="w-full"></div>
-
-
-</div>
-
-
-
-</div>
-
-<div class="fixed bottom-0 left-0 w-full bg-white shadow-lg border-t flex justify-around items-center py-3">
-
-
-  <button id="qrTab" class="relative -mt-10 bg-blue-600 border-4 border-white text-white p-3 rounded-full ">
-        <img src="{% static 'icon/qr.png' %}" class="w-7 h-7" />
-    </button>
-
-   
-
-</div>
-
-
-
-
-<script>
-const agendas = [
-  {% for agenda in agendas %}
-  {
-    name: "{{ agenda.name }}",
-    venue: "{{ agenda.venue }}",
-    dress_code: "{{ agenda.dress_code|default:'' }}",
-    start_time: "{{ agenda.start_time|time:'h:i A' }}",
-    end_time: "{% if agenda.end_time %}{{ agenda.end_time|time:'h:i A' }}{% endif %}"
-  }{% if not forloop.last %},{% endif %}
-  {% endfor %}
-];
-
-// -------------------------------
-// Convert "7:37 PM" → {hour: 19, minute: 37}
-// -------------------------------
-function parseTime(timeStr) {
-    if (!timeStr) return null;
-
-    const [time, ampm] = timeStr.split(" ");
-    let [h, m] = time.split(":").map(Number);
-
-    if (ampm === "PM" && h !== 12) h += 12;
-    if (ampm === "AM" && h === 12) h = 0;
-
-    return { hour: h, minute: m };
-}
-
-// -------------------------------
-// Compare using minutes only
-// -------------------------------
-function isTimeInRange(now, start, end) {
-    const nowM = now.getHours() * 60 + now.getMinutes();
-    const startM = start.hour * 60 + start.minute;
-    const endM = end ? (end.hour * 60 + end.minute) : null;
-
-    if (!endM) return nowM >= startM;
-    return nowM >= startM && nowM <= endM;
-}
-
-// -------------------------------
-// Check which agenda is active
-// -------------------------------
-function updateCurrentAgenda() {
-    const now = new Date();
-    let current = null;
-
-    for (const agenda of agendas) {
-        const start = parseTime(agenda.start_time);
-        const end = agenda.end_time ? parseTime(agenda.end_time) : null;
-
-        if (isTimeInRange(now, start, end)) {
+        for (const agenda of agendas) {
+          const start = parseTime(agenda.start_time);
+          const end = agenda.end_time ? parseTime(agenda.end_time) : null;
+          if (isTimeInRange(now, start, end)) {
             current = agenda;
             break;
+          }
         }
-    }
 
-    const c = document.getElementById("agenda-details");
+        const detailsEl = document.getElementById("agenda-details");
+        if (current) {
+          detailsEl.innerHTML = `
+            <div class="agenda-details-container">
+              <div class="agenda-item-wrapper">
+                <div class="agenda-row">
+                  <img src="${iconPaths.calender}" alt="Event" class="agenda-icon-img" />
+                  <div class="agenda-value-card">${current.name}</div>
+                </div>
+              </div>
+              <div class="agenda-item-wrapper">
+                <div class="agenda-row">
+                  <img src="${iconPaths.location}" alt="Venue" class="agenda-icon-img" />
+                  <div class="agenda-value-card">${current.venue}</div>
+                </div>
+              </div>
+              <div class="agenda-item-wrapper">
+                <div class="agenda-row">
+                  <img src="${iconPaths.formalSuit}" alt="Dress Code" class="agenda-icon-img" />
+                  <div class="agenda-value-card">${current.dress_code || 'Casual'}</div>
+                </div>
+              </div>
+              <div class="agenda-item-wrapper">
+                <div class="agenda-row">
+                  <img src="${iconPaths.clock}" alt="Time" class="agenda-icon-img" />
+                  <div class="agenda-value-card">${current.start_time}${current.end_time ? " - " + current.end_time : ""}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          detailsEl.innerHTML = `
+            <div class="agenda-details-container">
+              <div class="agenda-item">
+                <span class="agenda-label">Status</span>
+                <span class="agenda-value">No agenda currently running</span>
+              </div>
+            </div>
+          `;
+        }
+      }
 
-    if (current) {
-        c.innerHTML = `
-            <p><strong>Name:</strong> ${current.name}</p>
-            <p><strong>Venue:</strong> ${current.venue}</p>
-            <p><strong>Dress Code:</strong> ${current.dress_code || 'N/A'}</p>
-            <p><strong>Time:</strong> ${current.start_time}${current.end_time ? " - " + current.end_time : ""}</p>
-        `;
-    } else {
-        c.innerHTML = "<p>No agenda is currently running.</p>";
-    }
-}
+      updateCurrentAgenda();
+      setInterval(updateCurrentAgenda, 3000);
+    </script>
 
-// Run every 3 seconds
-updateCurrentAgenda();
-setInterval(updateCurrentAgenda, 3000);
-</script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="{% static 'js/event.js' %}?v=2"></script>
+    <script src="{% static 'js/modern-interactions.js' %}?v=2"></script>
+    <script src="{% static 'js/events-features.js' %}?v=4"></script>
 
+    <script>
+      // Initialize Swiper
+      document.addEventListener("DOMContentLoaded", function () {
+        const swiper = new Swiper(".swiper-container", {
+          loop: true,
+          autoplay: {
+            delay: 4000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          },
+          effect: "fade",
+          fadeEffect: {
+            crossFade: true,
+          },
+          speed: 1000,
+        });
 
+        // Help modal (desktop + mobile)
+        const helpBtn = document.getElementById("helpBtn");
+        const helpBtnMobile = document.getElementById("helpBtnMobile");
+        const helpPopup = document.getElementById("helpPopup");
+        const closeHelp = document.getElementById("closeHelp");
 
+        const openHelp = () => {
+          if (helpPopup) {
+            helpPopup.classList.remove("hidden");
+          }
+        };
 
-  <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script src="{% static  'js/event.js' %}"></script>
+        if (helpBtn) {
+          helpBtn.addEventListener("click", openHelp);
+        }
 
-</body>
+        if (helpBtnMobile) {
+          // Support both click and touch for better mobile behavior
+          helpBtnMobile.addEventListener("click", openHelp);
+          helpBtnMobile.addEventListener("touchend", (e) => {
+            e.preventDefault();
+            openHelp();
+          });
+        }
+
+        if (closeHelp && helpPopup) {
+          closeHelp.addEventListener("click", () => {
+            helpPopup.classList.add("hidden");
+          });
+
+          helpPopup.addEventListener("click", (e) => {
+            if (e.target === helpPopup) {
+              helpPopup.classList.add("hidden");
+            }
+          });
+        }
+
+        // Create post modal
+        const createPostBtn = document.getElementById("createPostBtn");
+        const postModal = document.getElementById("postModal");
+        const closePostModal = document.getElementById("closePostModal");
+
+        if (createPostBtn && postModal) {
+          createPostBtn.addEventListener("click", () => {
+            postModal.classList.remove("hidden");
+          });
+        }
+
+        if (closePostModal && postModal) {
+          closePostModal.addEventListener("click", () => {
+            postModal.classList.add("hidden");
+          });
+
+          postModal.addEventListener("click", (e) => {
+            if (e.target === postModal) {
+              postModal.classList.add("hidden");
+            }
+          });
+        }
+
+        // Close modals on Escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            document
+              .querySelectorAll(".modal-overlay-modern, .comments-modal-modern")
+              .forEach((modal) => {
+                if (!modal.classList.contains("hidden")) {
+                  modal.classList.add("hidden");
+                }
+              });
+          }
+        });
+      });
+    </script>
+
+  </body>
 </html>

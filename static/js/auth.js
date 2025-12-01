@@ -43,14 +43,44 @@ const signupBtn = document.getElementById("signupBtn");
 signupBtn && signupBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
+    // Disable button and show loading
+    const btnText = document.getElementById("signupBtnText");
+    const btnLoader = document.getElementById("signupBtnLoader");
+    if (btnText && btnLoader) {
+        btnText.style.display = "none";
+        btnLoader.style.display = "inline";
+    }
+    signupBtn.disabled = true;
+
     const username = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
     const contactNo = document.getElementById("contact").value.trim();
     const role = document.getElementById("role").value.trim();
     const selfieInput = document.getElementById("selfie");
-    const selfie = selfieInput.files[0] ? await toBase64(selfieInput.files[0]) : null;
+    
+    // Validate contact number format
+    if (!/^03[0-9]{9}$/.test(contactNo)) {
+        showToast("Contact number must start with 03 and be 11 digits (e.g., 03001234567)", "error");
+        if (btnText && btnLoader) {
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+        }
+        signupBtn.disabled = false;
+        return;
+    }
 
+    if (!selfieInput.files[0] || selfieInput.files[0].size === 0) {
+        showToast("Please upload a selfie or take a photo", "error");
+        if (btnText && btnLoader) {
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+        }
+        signupBtn.disabled = false;
+        return;
+    }
+
+    const selfie = await toBase64(selfieInput.files[0]);
     const payload = { username, email, password, contactNo, role, selfie };
 
     try {
@@ -60,36 +90,100 @@ signupBtn && signupBtn.addEventListener("click", async (e) => {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrftoken
             },
+            credentials: 'include', // Include cookies for CSRF
             body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (data.success) {
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            // IMPORTANT: On signup, NO tokens are generated
+            // This is by design - user must login separately to get tokens
+            // Clear any existing tokens
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            
+            console.log('Signup successful - redirecting to login page');
+            console.log('Note: Tokens will be generated after login');
 
-            showToast("Signup successfully", "success");
+            showToast("Signup successful! Please login to continue.", "success");
             setTimeout(() => {
-                window.location.href = "/api/events/";
+                window.location.href = "/api/users/signin/";
             }, 1500);
         } else {
             showToast(data.message, "error");
+            if (btnText && btnLoader) {
+                btnText.style.display = "inline";
+                btnLoader.style.display = "none";
+            }
+            signupBtn.disabled = false;
         }
 
     } catch (error) {
         console.error("Signup error:", error);
         showToast("An unexpected error occurred. Please try again.", "error");
+        if (btnText && btnLoader) {
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+        }
+        signupBtn.disabled = false;
     }
 });
 
+
+// Handle Enter key submission for forms
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!loginBtn.disabled) {
+                loginBtn.click();
+            }
+        });
+        
+        // Handle Enter key on password field
+        const passwordField = document.getElementById('password');
+        if (passwordField) {
+            passwordField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !loginBtn.disabled) {
+                    e.preventDefault();
+                    loginBtn.click();
+                }
+            });
+        }
+    }
+});
 
 const signinBtn = document.getElementById("loginBtn");
 
 signinBtn && signinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
+    
+    // Disable button and show loading
+    const btnText = document.getElementById("loginBtnText");
+    const btnLoader = document.getElementById("loginBtnLoader");
+    if (btnText && btnLoader) {
+        btnText.style.display = "none";
+        btnLoader.style.display = "inline";
+    }
+    signinBtn.disabled = true;
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
+    
+    if (!email || !password) {
+        showToast("Please enter both email and password", "error");
+        if (btnText && btnLoader) {
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+        }
+        signinBtn.disabled = false;
+        return;
+    }
+
     const payload = { email, password };
 
     try {
@@ -99,14 +193,31 @@ signinBtn && signinBtn.addEventListener("click", async (e) => {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrftoken
             },
+            credentials: 'include', // Include cookies for session
             body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (data.success) {
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            // Store tokens in localStorage
+            if (data.access) {
+                localStorage.setItem('access_token', data.access);
+                console.log('Access token stored in localStorage');
+            } else {
+                console.warn('No access token in response');
+            }
+            
+            if (data.refresh) {
+                localStorage.setItem('refresh_token', data.refresh);
+                console.log('Refresh token stored in localStorage');
+            } else {
+                console.warn('No refresh token in response');
+            }
+
+            // Session cookie should be set automatically by Django's login() function
+            // Check if sessionid cookie exists
+            console.log('Cookies:', document.cookie);
 
             showToast("Signin successful!", "success");
             setTimeout(() => {
@@ -114,10 +225,20 @@ signinBtn && signinBtn.addEventListener("click", async (e) => {
             }, 1500);
         } else {
             showToast(data.message, "error");
+            if (btnText && btnLoader) {
+                btnText.style.display = "inline";
+                btnLoader.style.display = "none";
+            }
+            signinBtn.disabled = false;
         }
     } catch (error) {
         console.error("Signin error:", error);
         showToast("An unexpected error occurred. Please try again.", "error");
+        if (btnText && btnLoader) {
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+        }
+        signinBtn.disabled = false;
     }
 });
 

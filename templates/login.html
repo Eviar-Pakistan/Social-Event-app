@@ -2,51 +2,208 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - EventHub</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Walls Ice Cream Events</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Outfit:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{% static 'css/walls-brand.css' %}" />
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-</head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-4">
+    <style>
+      /* --- FONT STYLE 1: MODERN & GEOMETRIC --- */
 
-  <div class="w-full max-w-md shadow-lg bg-white rounded-lg">
-    <div class="text-center p-6">
-      <div class="flex justify-center mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
+      /* PAGE BACKGROUND – Vanilla tone */
+      body {
+        background: #f4eadc;
+        min-height: 100vh;
+        font-family: "Montserrat", sans-serif; /* Use Montserrat for overall body */
+      }
+
+      /* CARD BACKGROUND – Clean white */
+      .auth-card {
+        background-color: #ffffff;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 6px 18px rgba(33, 39, 33, 0.15);
+        border: 1px solid rgba(33, 39, 33, 0.1);
+      }
+
+      /* Heading – Outfit for premium geometric visual impact */
+      .heading-primary {
+        font-family: "Outfit", sans-serif !important;
+        font-weight: 700;
+        font-size: 36px; /* Slightly larger heading */
+        letter-spacing: -1px; /* Tighter spacing for modernity */
+        color: #212121;
+      }
+
+      /* Input Labels – Montserrat Medium for clarity */
+      .form-label {
+        display: block;
+        font-family: "Montserrat", sans-serif !important;
+        font-weight: 600; /* Bolder label */
+        font-size: 13px; /* Smaller, punchier label */
+        margin-bottom: 4px;
+        color: #212121;
+        letter-spacing: 0.5px; /* Wider spacing for distinction */
+        text-transform: uppercase; /* Use uppercase for geometric feel */
+      }
+
+      /* Input Field Styling */
+      .form-input {
+        background-color: #f7f7f7 !important;
+        border: 1px solid #cccccc;
+        padding: 12px 14px;
+        width: 100%;
+        border-radius: 10px;
+        margin-top: 6px;
+        color: #212121;
+        font-family: "Montserrat", sans-serif;
+        font-size: 15px; /* Slightly larger input text */
+        transition: all 0.2s ease;
+      }
+
+      .form-input:focus {
+        background-color: #ffffff !important;
+        border-color: var(--heart-red);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(228, 30, 47, 0.28);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      /* Subtext + Link Styling (Montserrat) */
+      .auth-link-red {
+        color: var(--heart-red) !important;
+        font-weight: 700;
+        text-decoration: none; /* No underline, bold text instead */
+        transition: all 0.3s ease;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      .auth-link-red:hover {
+        color: #c11a28 !important;
+        transform: translateY(-2px);
+        text-shadow: 0 2px 4px rgba(228, 30, 47, 0.2);
+        text-decoration: underline; /* Add underline on hover */
+      }
+
+      /* Buttons (Outfit) */
+      .btn-primary {
+        font-family: "Outfit", sans-serif !important;
+        font-weight: 600;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+        padding: 12px 16px; /* Taller button */
+        border-radius: 12px !important; /* Rounder corners */
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div class="auth-card" style="max-width: 450px; width: 100%">
+      <div
+        class="text-center"
+        style="
+          padding-bottom: 24px;
+          border-bottom: 2px solid var(--ice);
+          margin-bottom: 24px;
+        "
+      >
+        <div class="flex justify-center mb-4">
+          <!-- Walls Logo -->
+          <img
+            src="{% static 'icon/walls.png' %}"
+            alt="Walls Logo"
+            style="height: 80px; width: auto; object-fit: contain"
+          />
+        </div>
+
+        <h1 class="heading-primary" style="font-size: 32px; margin-bottom: 8px">
+          Welcome
+        </h1>
+
+        <p
+          style="
+            color: var(--corporate-black);
+            opacity: 0.75;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+          "
+        >
+          Join the community and share your events
+        </p>
       </div>
-      <h1 class="text-3xl font-bold">EventHub</h1>
-      <p class="text-gray-500">Join the community and share your events</p>
+
+      <div>
+        <form id="loginForm" onsubmit="return false;">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              class="form-input"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              class="form-input"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button
+            type="button"
+            id="loginBtn"
+            class="btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            <span id="loginBtnText">Sign In</span>
+            <span id="loginBtnLoader" style="display: none">Signing in...</span>
+          </button>
+        </form>
+
+        <div style="margin-top: 24px">
+          <p
+            style="
+              text-align: center;
+              font-size: 14px;
+              color: var(--corporate-black);
+              opacity: 0.7;
+              font-family: 'Inter', sans-serif;
+            "
+          >
+            Don't have an account?
+            <a
+              href="/api/users/signup/"
+              class="auth-link-red"
+              style="text-decoration: underline; font-weight: 600"
+              >Sign Up</a
+            >
+          </p>
+        </div>
+      </div>
     </div>
 
-    <div class="p-6">
-      <form id="loginForm" class="space-y-4">
-    {% csrf_token %}
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-          <input id="email" type="email" placeholder="you@example.com" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input id="password" type="password" placeholder="••••••••" class="mt-1 block w-full border rounded-md p-2" required>
-        </div>
-        <button type="button" id="loginBtn" class="w-full bg-blue-600 text-white py-2 rounded-md">Sign In</button>
-      </form>
-        <div>
-            <p class="text-center text-sm text-gray-600 mt-4">
-                Don't have an account?
-                <a href="/api/users/signup/" class="text-blue-600 hover:underline">Sign Up</a>
-            </p>
-
-    </div>
-  </div>
-
-  <script src="{% static  'js/auth.js' %}"></script>
-  <script>
-  </script>
-</body>
+    <script src="{% static 'js/auth.js' %}"></script>
+  </body>
 </html>
