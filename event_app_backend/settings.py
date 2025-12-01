@@ -24,14 +24,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ozmg3*#&g$rxnuzvky!e29q$wz*r^m#--t2!u9$wb!0fuzmhbs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["13.51.13.200","tmicccdconference.com","www.tmicccdconference.com"]
 
 # settings.py
-# CSRF_TRUSTED_ORIGINS = [
-#     "http://13.51.13.200",
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://13.51.13.200",
+    "http://tmicccdconference.com/",
+    "https://tmicccdconference.com/"
+]
 
 
 # Application definition
