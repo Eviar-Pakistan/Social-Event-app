@@ -31,8 +31,6 @@ ALLOWED_HOSTS = ["*"]
 # settings.py
 # CSRF_TRUSTED_ORIGINS = [
 #     "http://13.51.13.200",
-#     "http://tmicccdconference.com/"
-#     "https://tmicccdconference.com/"
 # ]
 
 
