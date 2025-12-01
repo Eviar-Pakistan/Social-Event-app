@@ -57,6 +57,7 @@ signupBtn && signupBtn.addEventListener("click", async (e) => {
     const password = document.getElementById("password").value.trim();
     const contactNo = document.getElementById("contact").value.trim();
     const role = document.getElementById("role").value.trim();
+    const region = document.getElementById("region").value.trim()
     const selfieInput = document.getElementById("selfie");
     
     // Validate contact number format
@@ -81,7 +82,7 @@ signupBtn && signupBtn.addEventListener("click", async (e) => {
     }
 
     const selfie = await toBase64(selfieInput.files[0]);
-    const payload = { username, email, password, contactNo, role, selfie };
+    const payload = { username, email, password, contactNo, role, selfie , region };
 
     try {
         const response = await fetch("/api/users/signup/", {

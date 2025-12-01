@@ -56,10 +56,11 @@ def signup(request):
             contact = data.get('contactNo')
             password = data.get('password')
             role = data.get('role')
+            region = data.get("region")
             selfie_base64 = data.get('selfie')
-            region_info = get_region(request)
+            # region_info = get_region(request)
 
-            print("region",region_info)
+            # print("region",region_info)
 
             if not username:
                 return JsonResponse({'success': False, 'message': 'Username is required.'}, status=400)
@@ -85,6 +86,9 @@ def signup(request):
             if len(password) < 6:
                 return JsonResponse({'success': False, 'message': 'Password must be at least 6 characters long.'}, status=400)
 
+            if not region:
+                return JsonResponse({'success': False, 'message': 'Region is required.'}, status=400)
+
             if not role:
                 return JsonResponse({'success': False, 'message': 'Role is required.'}, status=400)
 
@@ -96,7 +100,7 @@ def signup(request):
                 email=email,
                 contact=contact,
                 role=role,
-                region=region_info['region'] if region_info else ''
+                region=region
             )
             user.set_password(password)
 
