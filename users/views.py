@@ -110,17 +110,22 @@ def signup(request):
 
             user.save()
 
+            user = authenticate(request, email=email, password=password)
             request.session['user_id'] = user.id
 
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
+            if user is not None:
+                login(request, user)
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
 
-            return JsonResponse({
-                'success': True,
-                'access': access_token,
-                'refresh': str(refresh),
-                'redirect': '/api/events/'
-            }, status=201)
+                return JsonResponse({
+                    'success': True,
+                    'access': access_token,
+                    'refresh': str(refresh),
+                    'redirect': '/api/events/'
+                }, status=201)
+            else:
+                return JsonResponse({'success': False, 'message': 'Authentication failed after signup.'}, status=400)
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)

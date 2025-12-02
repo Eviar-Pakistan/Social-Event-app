@@ -714,6 +714,34 @@ body {
   flex-shrink: 0;
 }
 
+/* Scrollable container for expanded list */
+.full-leaderboard {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-top: 15px;
+  display: none;
+}
+
+/* When toggled */
+.full-leaderboard.visible {
+  display: block;
+}
+
+/* Button style matching your theme */
+.see-more-btn {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: var(--heart-red);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: block;
+  width: 100%;
+}
+
+
 /* Profile Picture in Leaderboard */
 .leaderboard-profile-pic {
   flex-shrink: 0;

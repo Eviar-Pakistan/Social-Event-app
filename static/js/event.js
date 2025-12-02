@@ -23,6 +23,56 @@ function toBase64(file) {
         reader.onerror = error => reject(error);
     });
 }
+
+// Image compression function
+// Compresses images to max 1920px width/height and 80% quality
+async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Calculate new dimensions
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth || height > maxHeight) {
+                    if (width > height) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    } else {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                // Create canvas and compress
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to blob
+                canvas.toBlob(
+                    (blob) => {
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
  
 
 function showToast(message, type = "error") {
@@ -48,7 +98,12 @@ submitPostBtn.addEventListener('click', async () => {
     let token = localStorage.getItem("access_token");
     const caption = document.getElementById('caption').value;
     const imageInput = document.getElementById("image");
-    const image = imageInput.files[0] ? await toBase64(imageInput.files[0]) : null;
+    let image = null;
+    if (imageInput.files[0]) {
+        // Compress image before uploading
+        const compressedFile = await compressImage(imageInput.files[0]);
+        image = await toBase64(compressedFile);
+    }
 
     const payload = { caption, image };
 
@@ -243,10 +298,23 @@ async function addComment() {
     }
 }
 
+document.getElementById("see-more-btn").addEventListener("click", function () {
+    const fullList = document.getElementById("full-leaderboard");
+    const top3list = document.getElementById("top3-leaderboard")
 
-// Scan Qr
+    if (fullList.classList.contains("visible")) {
+        fullList.classList.remove("visible");
+        top3list.style.display = "block"
+        this.textContent = "See More";
+    } else {
+        top3list.style.display = "none"
+        fullList.classList.add("visible");
+        this.textContent = "Show Less";
+    }
+});
+
+// Scan QR
 const qrTab = document.getElementById("qrTab");
-
 const qrModal = document.getElementById("qrModal");
 const closeScanner = document.getElementById("closeScanner");
 let html5QrCode = null;

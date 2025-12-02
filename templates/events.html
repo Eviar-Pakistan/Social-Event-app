@@ -111,7 +111,6 @@
                   class="profile-mini-left"
                   id="profileMenuBtnLeftMobile"
                   style="cursor: pointer"
-                  onclick="var m=document.getElementById('profileMenuLeftMobile'); if(m){ m.classList.toggle('show'); }"
                 >
                   {% if user.selfie %}
                   <img
@@ -128,7 +127,7 @@
                   {% endif %}
                 </div>
                 <div
-                  class="profile-dropdown-menu-left show"
+                  class="profile-dropdown-menu-left"
                   id="profileMenuLeftMobile"
                 >
                   <button
@@ -298,89 +297,140 @@
     </div>
 
     <!-- Leaderboard -->
-    <div class="leaderboard-modern">
-      <h2 class="leaderboard-title-modern">
-        <img src="{% static 'icon/leadership.png' %}" alt="Leaderboard" class="leaderboard-title-icon" />
-        <span>Leaderboard</span>
-      </h2>
-      <div id="top3-leaderboard">
-        {% for top_3 in top_3_users %}
-        <div class="leaderboard-item">
-          <!-- Profile Picture -->
-          <div class="leaderboard-profile-pic">
-            {% if top_3.selfie %}
-            <img
-              src="{{ top_3.selfie.url }}"
-              alt="{{ top_3.username }}"
-              class="leaderboard-avatar"
-            />
-            {% else %}
-            <div class="leaderboard-avatar leaderboard-avatar-placeholder">
-              {{ top_3.username|first|upper }}
-            </div>
-            {% endif %}
-          </div>
-          
-          <!-- User Info: Name, Role, Region -->
-          <div class="user-info">
-            <div class="user-name">{{ top_3.username }}</div>
-            <div class="user-meta">
-              <span class="user-meta-item">
-                {{ top_3.role|default:"Member" }}, {{ top_3.region|default:"N/A" }}
-              </span>
-            </div>
-          </div>
-          
-          <!-- Points Display -->
-          <div class="points-display-large">
-            <div
-              style="
-                font-size: 12px;
-                color: var(--text-light);
-                margin-bottom: 4px;
-                text-align: center;
-              "
-            >
-              Points
-            </div>
-            <div>{{ top_3.total_points|default:"0" }}</div>
-          </div>
-          
-          <!-- Crown Icon -->
-          <div class="crown-container">
-            {% if forloop.counter == 1 %}
-            <div class="crown-badge crown-badge-gold">
-              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#D4AF37" stroke="#B8941F" stroke-width="1.2"/>
-                <circle cx="7" cy="19" r="1.2" fill="#D4AF37"/>
-                <circle cx="12" cy="19" r="1.2" fill="#D4AF37"/>
-                <circle cx="17" cy="19" r="1.2" fill="#D4AF37"/>
-              </svg>
-            </div>
-            {% elif forloop.counter == 2 %}
-            <div class="crown-badge crown-badge-silver">
-              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#9E9E9E" stroke="#757575" stroke-width="1.2"/>
-                <circle cx="7" cy="19" r="1.2" fill="#9E9E9E"/>
-                <circle cx="12" cy="19" r="1.2" fill="#9E9E9E"/>
-                <circle cx="17" cy="19" r="1.2" fill="#9E9E9E"/>
-              </svg>
-            </div>
-            {% elif forloop.counter == 3 %}
-            <div class="crown-badge crown-badge-bronze">
-              <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#CD7F32" stroke="#B87333" stroke-width="1.2"/>
-                <circle cx="7" cy="19" r="1.2" fill="#CD7F32"/>
-                <circle cx="12" cy="19" r="1.2" fill="#CD7F32"/>
-                <circle cx="17" cy="19" r="1.2" fill="#CD7F32"/>
-              </svg>
-            </div>
-            {% endif %}
-          </div>
+<div class="leaderboard-modern">
+  <h2 class="leaderboard-title-modern">
+    <img src="{% static 'icon/leadership.png' %}" alt="Leaderboard" class="leaderboard-title-icon" />
+    <span>Leaderboard</span>
+  </h2>
+
+  <!-- TOP 3 USERS -->
+  <div id="top3-leaderboard">
+    {% for top_3 in top_3_users %}
+    <div class="leaderboard-item">
+
+      <div class="leaderboard-profile-pic">
+        {% if top_3.selfie %}
+        <img src="{{ top_3.selfie.url }}" alt="{{ top_3.username }}" class="leaderboard-avatar" />
+        {% else %}
+        <div class="leaderboard-avatar leaderboard-avatar-placeholder">
+          {{ top_3.username|first|upper }}
         </div>
-        {% endfor %}
+        {% endif %}
       </div>
+
+      <div class="user-info">
+        <div class="user-name">{{ top_3.username }}</div>
+        <div class="user-meta">
+          <span>{{ top_3.role|default:"Member" }}, {{ top_3.region|default:"N/A" }}</span>
+        </div>
+      </div>
+
+      <div class="points-display-large">
+        <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; text-align:center;">Points</div>
+        <div>{{ top_3.total_points|default:"0" }}</div>
+      </div>
+
+      <div class="crown-container">
+        {% if forloop.counter == 1 %}
+        <div class="crown-badge crown-badge-gold">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#D4AF37" stroke="#B8941F" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#D4AF37"/>
+            <circle cx="12" cy="19" r="1.2" fill="#D4AF37"/>
+            <circle cx="17" cy="19" r="1.2" fill="#D4AF37"/>
+          </svg>
+        </div>
+
+        {% elif forloop.counter == 2 %}
+        <div class="crown-badge crown-badge-silver">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#9E9E9E" stroke="#757575" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#9E9E9E"/>
+            <circle cx="12" cy="19" r="1.2" fill="#9E9E9E"/>
+            <circle cx="17" cy="19" r="1.2" fill="#9E9E9E"/>
+          </svg>
+        </div>
+
+        {% elif forloop.counter == 3 %}
+        <div class="crown-badge crown-badge-bronze">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#CD7F32" stroke="#B87333" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#CD7F32"/>
+            <circle cx="12" cy="19" r="1.2" fill="#CD7F32"/>
+            <circle cx="17" cy="19" r="1.2" fill="#CD7F32"/>
+          </svg>
+        </div>
+        {% endif %}
+      </div>
+
     </div>
+    {% endfor %}
+  </div>
+
+  <div id="full-leaderboard" class="full-leaderboard">
+    {% for user in all_users %}
+    <div class="leaderboard-item">
+
+      <div class="leaderboard-profile-pic">
+        {% if user.selfie %}
+        <img src="{{ user.selfie.url }}" alt="{{ user.username }}" class="leaderboard-avatar" />
+        {% else %}
+        <div class="leaderboard-avatar leaderboard-avatar-placeholder">
+          {{ user.username|first|upper }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="user-info">
+        <div class="user-name">{{ user.username }}</div>
+        <div class="user-meta">{{ user.role|default:"Member" }}, {{ user.region|default:"N/A" }}</div>
+      </div>
+
+      <div class="points-display-large">
+        <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px; text-align:center;">Points</div>
+        <div>{{ user.total_points }}</div>
+      </div>
+
+      <div class="crown-container">
+        {% if forloop.counter == 1 %}
+        <div class="crown-badge crown-badge-gold">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#D4AF37" stroke="#B8941F" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#D4AF37"/>
+            <circle cx="12" cy="19" r="1.2" fill="#D4AF37"/>
+            <circle cx="17" cy="19" r="1.2" fill="#D4AF37"/>
+          </svg>
+        </div>
+
+        {% elif forloop.counter == 2 %}
+        <div class="crown-badge crown-badge-silver">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#9E9E9E" stroke="#757575" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#9E9E9E"/>
+            <circle cx="12" cy="19" r="1.2" fill="#9E9E9E"/>
+            <circle cx="17" cy="19" r="1.2" fill="#9E9E9E"/>
+          </svg>
+        </div>
+
+        {% elif forloop.counter == 3 %}
+        <div class="crown-badge crown-badge-bronze">
+          <svg class="crown-icon" viewBox="0 0 24 24">
+            <path d="M5 16L3 10L8 12L12 4L16 12L21 10L19 16H5Z" fill="#CD7F32" stroke="#B87333" stroke-width="1.2"/>
+            <circle cx="7" cy="19" r="1.2" fill="#CD7F32"/>
+            <circle cx="12" cy="19" r="1.2" fill="#CD7F32"/>
+            <circle cx="17" cy="19" r="1.2" fill="#CD7F32"/>
+          </svg>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- BUTTON -->
+  <button id="see-more-btn" class="see-more-btn">See More</button>
+</div>
 
     <!-- Create Post Section -->
     <section class="create-post-section">
@@ -613,6 +663,7 @@
         {
           name: "{{ agenda.name }}",
           venue: "{{ agenda.venue }}",
+          date: "{{ agenda.date }}",
           dress_code: "{{ agenda.dress_code|default:'' }}",
           start_time: "{{ agenda.start_time|time:'h:i A' }}",
           end_time: "{% if agenda.end_time %}{{ agenda.end_time|time:'h:i A' }}{% endif %}"
@@ -629,6 +680,24 @@
         return { hour: h, minute: m };
       }
 
+      function parseAgendaDate(dateStr) {
+          if (!dateStr) return null;
+          const clean = dateStr.replace(/(st|nd|rd|th)/, "");
+
+          const [day, monthShort] = clean.split(" ");
+
+          const months = {
+            Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+            Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+          };
+
+          const month = months[monthShort];
+          const year = new Date().getFullYear();
+
+          return new Date(year, month, parseInt(day));
+        }
+
+
       function isTimeInRange(now, start, end) {
         const nowM = now.getHours() * 60 + now.getMinutes();
         const startM = start.hour * 60 + start.minute;
@@ -641,14 +710,24 @@
         const now = new Date();
         let current = null;
 
-        for (const agenda of agendas) {
-          const start = parseTime(agenda.start_time);
-          const end = agenda.end_time ? parseTime(agenda.end_time) : null;
-          if (isTimeInRange(now, start, end)) {
-            current = agenda;
-            break;
-          }
+      for (const agenda of agendas) {
+        const agendaDate = parseAgendaDate(agenda.date);
+        
+        if (
+          agendaDate.getDate() !== now.getDate() ||
+          agendaDate.getMonth() !== now.getMonth()
+        ) {
+          continue;
         }
+        const start = parseTime(agenda.start_time);
+        const end = agenda.end_time ? parseTime(agenda.end_time) : null;
+
+        if (isTimeInRange(now, start, end)) {
+          current = agenda;
+          break;
+        }
+      }
+
 
         const detailsEl = document.getElementById("agenda-details");
         if (current) {
@@ -685,7 +764,7 @@
             <div class="agenda-details-container">
               <div class="agenda-item">
                 <span class="agenda-label">Status</span>
-                <span class="agenda-value">No agenda currently running</span>
+                <span class="agenda-value">Stay Tuned!</span>
               </div>
             </div>
           `;
@@ -699,7 +778,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="{% static 'js/event.js' %}?v=2"></script>
+    <script src="{% static 'js/event.js' %}?v=3"></script>
     <script src="{% static 'js/modern-interactions.js' %}?v=2"></script>
     <script src="{% static 'js/events-features.js' %}?v=4"></script>
 

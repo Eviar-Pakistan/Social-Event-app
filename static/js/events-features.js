@@ -1,5 +1,55 @@
 // Additional Features for Events Page
 
+// Image compression function
+// Compresses images to max 1920px width/height and 80% quality
+async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Calculate new dimensions
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth || height > maxHeight) {
+                    if (width > height) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    } else {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                // Create canvas and compress
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to blob
+                canvas.toBlob(
+                    (blob) => {
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
 // ============================================
 // PROFILE DROPDOWN MENU - LEFT SIDE
 // ============================================
@@ -28,7 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // NOTE: Mobile avatar click is handled inline in events.html
+    // Mobile avatar (same logic, shared helper)
+    if (profileMenuBtnLeftMobile && profileMenuLeftMobile) {
+        profileMenuBtnLeftMobile.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMenu(profileMenuLeftMobile);
+            if (profileMenuLeft) {
+                profileMenuLeft.classList.remove('show');
+            }
+        });
+    }
 
     // Close both when clicking outside
     document.addEventListener('click', function(e) {
@@ -241,9 +301,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageUploadContainer = document.getElementById('image-upload-container');
     
     if (imageInput && imageUploadBox && imageUploadContainer) {
-        imageInput.addEventListener('change', function(e) {
+        imageInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Compress the uploaded image
+                const compressedFile = await compressImage(file);
+                
+                // Update the input with compressed file
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(compressedFile);
+                imageInput.files = dataTransfer.files;
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     // Remove existing preview
@@ -265,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     imageUploadContainer.appendChild(previewContainer);
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(compressedFile);
             }
         });
     }

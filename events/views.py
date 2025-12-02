@@ -67,8 +67,19 @@ def events_view(request):
             .annotate(total_points=Sum("game_scores__score")) 
             .order_by("-total_points") 
             .distinct()
-    )[:3]  # Only top 3
+    )[:3]
 
+    all_users = (
+    CustomUser.objects
+        .filter(game_scores__is_participated=True)
+        .annotate(total_points=Sum("game_scores__score"))
+        .filter(total_points__gt=0)
+        .order_by("-total_points")
+        .distinct()
+)
+
+
+    print("all user",all_users)
     agendas = Agenda.objects.all().order_by('start_time')
 
     print("agendas",agendas)
@@ -76,9 +87,11 @@ def events_view(request):
     return render(request, 'events.html', {
         'user': user,
         'top_3_users': top_3_users,
+        "all_users": all_users,
         'banners': banners,
         'agendas': agendas,
         'posts': posts,
+        
     })
 
 
