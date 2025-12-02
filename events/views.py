@@ -16,6 +16,8 @@ from Crypto.Cipher import AES
 from .utils import decrypt_qr  
 from django.db.models import Sum
 from .models import Agenda
+from django.db import transaction
+
 
 def time_ago(dt):
     now = timezone.now()
@@ -99,8 +101,8 @@ def events_view(request):
 
 def submit_qr(request):
     if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "Invalid method"})
-    
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return JsonResponse({"status": "error", "message": "Missing or invalid token"}, status=401)
@@ -108,8 +110,7 @@ def submit_qr(request):
     token_str = auth_header.split(" ")[1]
     try:
         access_token = AccessToken(token_str)
-        user_id = access_token["user_id"]
-        user = CustomUser.objects.get(id=user_id)
+        user = CustomUser.objects.get(id=access_token["user_id"])
     except CustomUser.DoesNotExist:
         return JsonResponse({"status": "error", "message": "User not found"}, status=404)
     except Exception as e:
@@ -119,7 +120,7 @@ def submit_qr(request):
         data = json.loads(request.body)
         qr_data = data.get("qr_data")
         if not qr_data:
-            return JsonResponse({"status": "error", "message": "No QR data received"})
+            return JsonResponse({"status": "error", "message": "No QR data received"}, status=400)
 
         qr_json = decrypt_qr(qr_data)
         game_id = qr_json.get("id")
@@ -127,76 +128,51 @@ def submit_qr(request):
         score = qr_json.get("gameScore", 0)
         qr_type = qr_json.get("type")
 
+        if not game_id or not game_name or not qr_type:
+            return JsonResponse({"status": "error", "message": "Invalid QR data"}, status=400)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Failed to parse QR data: {e}"}, status=400)
 
-        if not game_name:
-            return JsonResponse({"status": "error", "message": "Game name missing"})
+    try:
+        game = Games.objects.get(id=game_id)
+    except Games.DoesNotExist:
+        return JsonResponse({"status": "error", "message": f"Game '{game_name}' not found"}, status=404)
 
-        user_id = request.session.get("user_id")
-        if not user_id:
-            return JsonResponse({"status": "error", "message": "User not logged in"})
+    try:
+        with transaction.atomic():
+            user_game_score, created = UserGameScore.objects.select_for_update().get_or_create(
+                user=user,
+                game=game,
+                defaults={"score": 0, "is_participated": False, "is_completed": False}
+            )
 
-        user = CustomUser.objects.get(id=user_id)
+            if qr_type == "participation":
+                if user_game_score.is_participated:
+                    return JsonResponse({"status": "info", "message": "You have already participated in this game."})
+                user_game_score.is_participated = True
+                user_game_score.score += score
+                user_game_score.save()
+                return JsonResponse({"status": "success", "message": "Participation recorded successfully."})
 
-        try:
-            game = Games.objects.get(id=game_id)
-        except Games.DoesNotExist:
-            return JsonResponse({"status": "error", "message": f"Game {game_name} not found"})
+            elif qr_type == "completed":
+                if  user_game_score.is_participated == False:
+                    return JsonResponse({"status": "error", "message": "You must participate before completing the game."})
+                if user_game_score.is_completed:
+                    return JsonResponse({
+                        "status": "info",
+                        "score": user_game_score.score,
+                        "message": "You have already completed this game."
+                    })
+                user_game_score.is_completed = True
+                user_game_score.score += score
+                user_game_score.save()
+                return JsonResponse({"status": "success", "score": user_game_score.score, "message": "Game completed successfully."})
 
-        user_game_score, created = UserGameScore.objects.get_or_create(
-            user=user,
-            game=game,
-            defaults={"score": 0, "is_participated": False, "is_completed": False}
-        )
-
-
-        if qr_type == "participation":
-            if user_game_score.is_participated:
-                return JsonResponse({
-                    "status": "info",
-                    "message": "You have already participated in this game."
-                })
-
-            user_game_score.is_participated = True
-            user_game_score.score += score
-            user_game_score.save()
-
-            return JsonResponse({
-                "status": "success",
-                "message": "Participation recorded successfully."
-            })
-
-        if qr_type == "completed":
-            if not user_game_score.is_participated:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "You must participate before completing the game."
-                })
-
-            if user_game_score.is_completed:
-                return JsonResponse({
-                    "status": "info",
-                    "score": user_game_score.score,
-                    "message": "You have already completed this game."
-                })
-
-            user_game_score.is_completed = True
-            user_game_score.score += score
-
-            user_game_score.save()
-
-            return JsonResponse({
-                "status": "success",
-                "score": user_game_score.score,
-                "message": "Game completed successfully."
-            })
-
-        return JsonResponse({
-            "status": "error",
-            "message": "Invalid QR type."
-        })
+            else:
+                return JsonResponse({"status": "error", "message": "Invalid QR type."}, status=400)
 
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
+        return JsonResponse({"status": "error", "message": f"Failed to update score: {e}"}, status=500)
 
 
 
@@ -316,7 +292,34 @@ def add_comment(request, post_id):
     except Posts.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Post not found"}, status=404)
 
-
+@login_required(login_url='/api/users/signin/')
+def post_detail(request, post_id):
+    """Get post details for the detail modal"""
+    try:
+        user_id = request.session.get('user_id')
+        user = CustomUser.objects.get(id=user_id)
+        post = Posts.objects.get(id=post_id)
+        post.is_liked_by_user = post.likes.filter(user=user).exists()
+        
+        return JsonResponse({
+            "status": "success",
+            "post": {
+                "id": post.id,
+                "caption": post.caption,
+                "image": post.image.url if post.image else None,
+                "created_at": post.created_at.strftime("%B %d, %Y at %I:%M %p"),
+                "user": post.user.username,
+                "user_avatar": post.user.selfie.url if post.user.selfie else None,
+                "total_likes": post.total_likes,
+                "total_comments": post.total_comments,
+                "is_liked_by_user": post.is_liked_by_user
+            }
+        })
+    except Posts.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Post not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
 def get_comments(request, post_id):
     if request.method != "GET":
         return JsonResponse({"status": "error", "message": "Only GET allowed"}, status=405)

@@ -313,6 +313,139 @@ document.getElementById("see-more-btn").addEventListener("click", function () {
     }
 });
 
+function openPostDetail(postId) {
+    const modal = document.getElementById('postDetailModal');
+    const content = document.getElementById('postDetailContent');
+    
+    if (!modal || !content) return;
+    
+    // Show loading state
+    content.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+            <div class="loading-spinner" style="margin: 0 auto;"></div>
+            <p style="margin-top: 16px; color: var(--text-light);">Loading post...</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    // Fetch post details
+    const token = localStorage.getItem("access_token");
+    
+    fetch(`/api/events/${postId}/`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            const post = data.post;
+            
+            // Update URL without reload
+            window.history.pushState({}, '', `/api/events/${postId}/`);
+            
+            content.innerHTML = `
+                <div style="text-align: center;">
+                    ${post.image ? `
+                        <img src="${post.image}" class="post-detail-image" alt="Post image">
+                    ` : ''}
+                    <p class="post-detail-caption">${post.caption}</p>
+                    <div class="post-detail-meta">
+                        <div class="post-detail-stat">
+                            <div class="post-detail-stat-value">${post.total_likes}</div>
+                            <div class="post-detail-stat-label">Likes</div>
+                        </div>
+                        <div class="post-detail-stat">
+                            <div class="post-detail-stat-value">${post.total_comments}</div>
+                            <div class="post-detail-stat-label">Comments</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px; padding: 16px; background: var(--bg-beige); border-radius: 12px;">
+                        <p style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;">Posted by</p>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                            ${post.user_avatar ? `
+                                <img src="${post.user_avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                            ` : `
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-red); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                                    ${post.user.charAt(0).toUpperCase()}
+                                </div>
+                            `}
+                            <span style="font-weight: 700; font-size: 16px;">${post.user}</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-light); margin-top: 8px;">${post.created_at}</p>
+                    </div>
+                    <div class="post-detail-actions">
+                        <button onclick="toggleLike(${post.id}); loadPostDetail(${post.id});" class="action-btn ${post.is_liked_by_user ? 'active' : ''}" style="padding: 12px 24px; font-size: 16px;">
+                            ${post.is_liked_by_user ? '❤ Liked' : '🤍 Like'}
+                        </button>
+                        <button onclick="closePostDetail(); openCommentsModal(${post.id});" class="action-btn" style="padding: 12px 24px; font-size: 16px; background: var(--accent-red); color: white;">
+                            💬 Comment
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <p style="color: var(--accent-red); font-weight: 600;">Failed to load post details</p>
+                    <button onclick="closePostDetail()" class="create-post-btn" style="margin-top: 16px; max-width: 200px;">
+                        Close
+                    </button>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading post detail:', error);
+        content.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+                <p style="color: var(--accent-red); font-weight: 600;">Error loading post</p>
+                <button onclick="closePostDetail()" class="create-post-btn" style="margin-top: 16px; max-width: 200px;">
+                    Close
+                </button>
+            </div>
+        `;
+    });
+}
+
+function loadPostDetail(postId) {
+    // Reload post detail after like action
+    const content = document.getElementById('postDetailContent');
+    if (content && !document.getElementById('postDetailModal').classList.contains('hidden')) {
+        openPostDetail(postId);
+    }
+}
+
+function closePostDetail() {
+    const modal = document.getElementById('postDetailModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        // Reset URL
+        window.history.pushState({}, '', '/api/events/');
+    }
+}
+
+// Close post detail on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const postDetailModal = document.getElementById('postDetailModal');
+        if (postDetailModal && !postDetailModal.classList.contains('hidden')) {
+            closePostDetail();
+        }
+    }
+});
+
+// Close post detail on overlay click
+document.addEventListener('click', function(e) {
+    const postDetailModal = document.getElementById('postDetailModal');
+    if (postDetailModal && e.target === postDetailModal) {
+        closePostDetail();
+    }
+});
+
 // Scan QR
 const qrTab = document.getElementById("qrTab");
 const qrModal = document.getElementById("qrModal");
