@@ -126,18 +126,6 @@
                   </div>
                   {% endif %}
                 </div>
-                <div
-                  class="profile-dropdown-menu-left"
-                  id="profileMenuLeftMobile"
-                >
-                  <button
-                    class="profile-dropdown-item logout"
-                    onclick="handleLogout()"
-                  >
-                   
-                    <span>Logout</span>
-                  </button>
-                </div>
               </div>
               <div class="user-name-details">
                 <span class="user-name-header">{{ user.username }}</span>
@@ -148,6 +136,18 @@
               </div>
             </div>
           </div>
+          <div
+          class="profile-dropdown-menu-left"
+          id="profileMenuLeftMobile"
+        >
+          <button
+            class="profile-dropdown-item logout"
+            onclick="handleLogout()"
+          >
+           
+            <span>Logout</span>
+          </button>
+        </div>
         </div>
 
         <!-- Right Section: Points, Help -->
@@ -257,36 +257,22 @@
       <div class="swiper-container" style="overflow: hidden">
         <div class="swiper-wrapper">
           <!-- Event banners -->
-          <div class="swiper-slide">
-            <img
-              src="{% static 'banners/banner1.png' %}"
-              class="banner-image-modern"
-              alt="Event Banner 1"
-              loading="lazy"
-            />
-          </div>
-          <div class="swiper-slide">
-            <img
-              src="{% static 'banners/banner2.png' %}"
-              class="banner-image-modern"
-              alt="Event Banner 2"
-              loading="lazy"
-            />
-          </div>
-          <div class="swiper-slide">
-            <img
-              src="{% static 'banners/banner3.png' %}"
-              class="banner-image-modern"
-              alt="Event Banner 3"
-              loading="lazy"
-            />
-          </div>
+         {% for banner in banners %}
+        <div class="swiper-slide">
+          <img
+            src="{% static banner %}"
+            class="banner-image-modern"
+            alt="Event Banner"
+            loading="lazy"
+          />
+        </div>
+        {% endfor %}
         </div>
       </div>
     </section>
 
     <!-- Current Agenda -->
-    <div class="agenda-card-modern" id="current-agenda">
+    <div class="agenda-card-modern" id="current-agenda" onclick="window.location.href='/api/events/agendas/'" style="cursor: pointer;">
       <h2 class="agenda-title-modern">Current Agenda</h2>
       <div id="agenda-details">
         <div class="agenda-item">

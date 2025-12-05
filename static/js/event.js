@@ -451,9 +451,14 @@ const qrTab = document.getElementById("qrTab");
 const qrModal = document.getElementById("qrModal");
 const closeScanner = document.getElementById("closeScanner");
 let html5QrCode = null;
+let isProcessingQr = false; // Flag to prevent multiple simultaneous requests
+let lastScannedQr = null; // Track last scanned QR code
 
 function stopQrScannerAndClose() {
     if (!qrModal) return;
+
+    isProcessingQr = false;
+    lastScannedQr = null;
 
     if (html5QrCode) {
         try {
@@ -486,6 +491,9 @@ if (qrTab && qrModal) {
     qrTab.addEventListener("click", () => {
         const token = localStorage.getItem("access_token");
 
+        
+        isProcessingQr = false;
+        lastScannedQr = null;
         qrModal.classList.remove("hidden");
 
         // Create scanner instance if needed
@@ -500,6 +508,29 @@ if (qrTab && qrModal) {
             config,
             async (decodedText) => {
                 console.log("QR Result:", decodedText);
+
+                // Prevent duplicate requests
+                if (isProcessingQr) {
+                    console.log("Already processing a QR code request, ignoring...");
+                    return;
+                }
+
+                // Prevent scanning the same QR code multiple times
+                if (lastScannedQr === decodedText) {
+                    console.log("Same QR code detected again, ignoring...");
+                    return;
+                }
+
+                // Stop scanner immediately to prevent multiple scans
+                try {
+                    await html5QrCode.stop();
+                } catch (err) {
+                    console.error("Error stopping scanner:", err);
+                }
+
+                // Set flags before making request
+                isProcessingQr = true;
+                lastScannedQr = decodedText;
 
                 try {
                     const res = await fetch("/api/events/submit-qr/", {
@@ -525,6 +556,9 @@ if (qrTab && qrModal) {
                 } catch (err) {
                     console.error(err);
                     stopQrScannerAndClose();
+                } finally {
+                    // Reset processing flag after request completes
+                    isProcessingQr = false;
                 }
             }
         );

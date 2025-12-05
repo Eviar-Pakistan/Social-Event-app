@@ -79,16 +79,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Mobile avatar (same logic, shared helper)
-    if (profileMenuBtnLeftMobile && profileMenuLeftMobile) {
-        profileMenuBtnLeftMobile.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMenu(profileMenuLeftMobile);
-            if (profileMenuLeft) {
-                profileMenuLeft.classList.remove('show');
-            }
-        });
-    }
+       // Mobile avatar (same logic, shared helper)
+   // Mobile avatar (same logic, shared helper)
+if (profileMenuBtnLeftMobile && profileMenuLeftMobile) {
+    const handleMobileProfileClick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Get button position
+        const buttonRect = profileMenuBtnLeftMobile.getBoundingClientRect();
+        
+        // Position dropdown dynamically
+        if (profileMenuLeftMobile.classList.contains('show')) {
+            // Close it
+            profileMenuLeftMobile.classList.remove('show');
+        } else {
+            // Open it and position it
+            profileMenuLeftMobile.style.position = 'fixed';
+            profileMenuLeftMobile.style.top = (buttonRect.bottom + 12) + 'px';
+            profileMenuLeftMobile.style.left = buttonRect.left + 'px';
+            profileMenuLeftMobile.classList.add('show');
+        }
+        
+        if (profileMenuLeft) {
+            profileMenuLeft.classList.remove('show');
+        }
+    };
+    
+    profileMenuBtnLeftMobile.addEventListener('click', handleMobileProfileClick);
+    profileMenuBtnLeftMobile.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleMobileProfileClick(e);
+    });
+}
 
     // Close both when clicking outside
     document.addEventListener('click', function(e) {

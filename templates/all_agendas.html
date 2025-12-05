@@ -1,0 +1,401 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <title>All Agendas - Walls Ice Cream</title>
+
+    <!-- Modern UI CSS -->
+    <link rel="stylesheet" href="{% static 'css/modern-ui.css' %}?v=2" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      body {
+        padding-bottom: 100px;
+      }
+
+      .agendas-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      .agendas-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .agendas-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0;
+      }
+
+      .back-button {
+        background: var(--warm-white);
+        border: 2px solid var(--border-ice);
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .back-button:hover {
+        background: var(--vanilla);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+      }
+
+      .agendas-table-container {
+        background: var(--warm-white);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: var(--shadow-medium);
+        border: 2px solid var(--border-wafer);
+        overflow-x: auto;
+      }
+
+      .agendas-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+
+      .agendas-table thead {
+        background: var(--vanilla);
+        border-bottom: 2px solid var(--border-ice);
+      }
+
+      .agendas-table th {
+        padding: 16px;
+        text-align: left;
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .agendas-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .agendas-table tbody tr:hover {
+        background: var(--vanilla);
+        transition: background 0.2s ease;
+      }
+
+      .agendas-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .date-badge {
+        background: var(--heart-red);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-block;
+      }
+
+      .time-badge {
+        background: var(--wafer);
+        color: var(--text-dark);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-block;
+      }
+
+      .venue-text {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .dress-code-text {
+        padding: 4px 10px;
+        background: var(--vanilla);
+        border-radius: 6px;
+        font-size: 13px;
+        display: inline-block;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+      }
+
+      .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+      }
+
+      .empty-state-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 767px) {
+        .agendas-container {
+          margin: 20px auto;
+          padding: 0 16px;
+        }
+
+        .agendas-title {
+          font-size: 24px;
+        }
+
+        .agendas-table-container {
+          padding: 16px;
+        }
+
+        .agendas-table {
+          font-size: 14px;
+        }
+
+        .agendas-table th,
+        .agendas-table td {
+          padding: 12px 8px;
+        }
+
+        .agendas-table th {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="app-header">
+      <!-- Left Section: User Info -->
+      <div class="header-left">
+        <div class="user-info">
+          <div class="user-info-with-avatar">
+            <div class="profile-dropdown-left">
+              <div
+                class="profile-mini-left"
+                id="profileMenuBtnLeft"
+                style="cursor: pointer"
+              >
+                {% if user.selfie %}
+                <img
+                  src="{{ user.selfie.url }}"
+                  alt="Profile"
+                  class="user-profile-avatar"
+                />
+                {% else %}
+                <div
+                  class="user-profile-avatar user-profile-avatar-placeholder"
+                >
+                  {{ user.username|first|upper }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="profile-dropdown-menu-left" id="profileMenuLeft">
+                <button
+                  class="profile-dropdown-item logout"
+                  onclick="handleLogout()"
+                >
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+            <div class="user-name-details">
+              <span class="user-name-header">{{ user.username }}</span>
+              <span class="user-details-header"
+                >{{ user.role|default:"Member" }} •
+                {{user.region|default:"Unknown"}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Section: Logo and Title -->
+      <div class="header-center">
+        <div class="logo-container">
+          <img
+            src="{% static 'icon/walls.png' %}"
+            alt="Walls Logo"
+            class="walls-logo"
+          />
+        </div>
+      </div>
+
+      <!-- Right Section: Points, Help -->
+      <div class="header-right">
+        <div class="points-display">
+          {% if user.total_points %}{{ user.total_points }}{% else %}0{% endif%}
+          pts
+        </div>
+        <button
+          id="helpBtn"
+          class="modal-close-modern help-btn-header"
+          title="Help"
+        >
+          ?
+        </button>
+      </div>
+
+      <!-- Mobile Row 2 -->
+      <div class="header-row-2">
+        <div class="header-left-mobile">
+          <div class="user-info">
+            <div class="user-info-with-avatar">
+              <div class="profile-dropdown-left">
+                <div
+                  class="profile-mini-left"
+                  id="profileMenuBtnLeftMobile"
+                  style="cursor: pointer"
+                >
+                  {% if user.selfie %}
+                  <img
+                    src="{{ user.selfie.url }}"
+                    alt="Profile"
+                    class="user-profile-avatar"
+                  />
+                  {% else %}
+                  <div
+                    class="user-profile-avatar user-profile-avatar-placeholder"
+                  >
+                    {{ user.username|first|upper }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="user-name-details">
+                <span class="user-name-header">{{ user.username }}</span>
+                <span class="user-details-header"
+                  >{{ user.role|default:"Member" }} •
+                  {{user.region|default:"Unknown"}}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="profile-dropdown-menu-left"
+            id="profileMenuLeftMobile"
+          >
+            <button
+              class="profile-dropdown-item logout"
+              onclick="handleLogout()"
+            >
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="header-right-mobile">
+          <div class="points-display">
+            {% if user.total_points %}{{ user.total_points }}{% else%}0{%endif%}
+            pts
+          </div>
+          <button
+            id="helpBtnMobile"
+            class="modal-close-modern help-btn-header"
+            title="Help"
+          >
+            ?
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Wavy Line Separator -->
+    <div class="wavy-line"></div>
+
+    <!-- Agendas Container -->
+    <div class="agendas-container">
+      <div class="agendas-header">
+        <h1 class="agendas-title">All Agendas</h1>
+        <a href="/api/events/" class="back-button">
+          ← Back to Events
+        </a>
+      </div>
+
+      <div class="agendas-table-container">
+        {% if agendas %}
+        <table class="agendas-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Venue</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Dress Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for agenda in agendas %}
+            <tr>
+              <td>
+                <span class="date-badge">{{ agenda.date }}</span>
+              </td>
+              <td>
+                <strong>{{ agenda.name }}</strong>
+              </td>
+              <td>
+                <span class="venue-text">{{ agenda.venue }}</span>
+              </td>
+              <td>
+                <span class="time-badge">{{ agenda.start_time|time:"h:i A" }}</span>
+              </td>
+              <td>
+                {% if agenda.end_time %}
+                <span class="time-badge">{{ agenda.end_time|time:"h:i A" }}</span>
+                {% else %}
+                <span style="color: var(--text-light);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if agenda.dress_code %}
+                <span class="dress-code-text">{{ agenda.dress_code }}</span>
+                {% else %}
+                <span style="color: var(--text-light);">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📅</div>
+          <div class="empty-state-title">No Agendas Found</div>
+          <div>There are no agendas available at the moment.</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/events-features.js' %}?v=4"></script>
+    <script src="{% static 'js/modern-interactions.js' %}?v=2"></script>
+  </body>
+</html>

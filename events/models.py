@@ -61,6 +61,8 @@ class UserGameScore(models.Model):
     score = models.IntegerField(default=0)
     is_participated = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    participated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         unique_together = ('user', 'game')

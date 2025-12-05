@@ -5,6 +5,7 @@ import os
 from django.conf import settings
 from django.http import JsonResponse
 from .models import Posts , Like, Comment , UserGameScore, Games
+from django.db import models
 from rest_framework_simplejwt.tokens import AccessToken
 import json
 import base64
@@ -14,9 +15,13 @@ from django.utils import timezone
 from datetime import timedelta
 from Crypto.Cipher import AES
 from .utils import decrypt_qr  
-from django.db.models import Sum
+from django.db.models import Sum, Case, When, IntegerField, Min, Max
+from django.utils import timezone
 from .models import Agenda
 from django.db import transaction
+from django.shortcuts import get_object_or_404
+import re
+
 
 
 def time_ago(dt):
@@ -41,22 +46,41 @@ def time_ago(dt):
     else:
         months = int(seconds / 2419200)
         return f"{months}mo ago"
-    
+
+
+
+def natural_sort_key(text):
+    return [int(num) if num.isdigit() else num.lower() 
+            for num in re.split(r'(\d+)', text)]
  
 @login_required(login_url='/api/users/signin/')
 def events_view(request):
+    # user = CustomUser.objects.get(id=user_id)
     user_id = request.session.get('user_id')
-    user = CustomUser.objects.get(id=user_id)
+    if user_id:  # 4 spaces
+        user = get_object_or_404(CustomUser, id=user_id)  # 8 spaces (inside if)
+    else:  # 4 spaces
+        user = request.user  
+
+
 
     banner_folder = os.path.join(settings.STATIC_ROOT, 'banners')
     if not os.path.exists(banner_folder):
         banner_folder = os.path.join(settings.BASE_DIR, 'static/banners')
 
+
     banners = []
+
     if os.path.exists(banner_folder):
-        for file in os.listdir(banner_folder):
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-                banners.append(f'banners/{file}') 
+        files = [
+            file for file in os.listdir(banner_folder)
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+        ]
+
+        files.sort(key=natural_sort_key)
+
+        for file in files:
+            banners.append(f'banners/{file}')
 
     posts = Posts.objects.all().order_by('-created_at')
     for post in posts:
@@ -65,20 +89,63 @@ def events_view(request):
 
     top_3_users = (
         CustomUser.objects
-            .filter(game_scores__is_participated=True)  
-            .annotate(total_points=Sum("game_scores__score")) 
-            .order_by("-total_points") 
+            .filter(game_scores__is_participated=True)
+            .annotate(
+                total_points=Sum("game_scores__score"),
+                earliest_completion=Min(
+                    Case(
+                        When(game_scores__is_completed=True, game_scores__completed_at__isnull=False, 
+                             then='game_scores__completed_at'),
+                        default=None,
+                        output_field=models.DateTimeField()
+                    )
+                ),
+                has_completed=Max(
+                    Case(
+                        When(game_scores__is_completed=True, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                )
+            )
+            .filter(total_points__gt=0)
+            .order_by(
+                '-total_points',           # First: Sort by total points (descending)
+                '-has_completed',          # Second: Completed users first
+                'earliest_completion'      # Third: Earlier completion time first
+            )
             .distinct()
     )[:3]
 
     all_users = (
-    CustomUser.objects
-        .filter(game_scores__is_participated=True)
-        .annotate(total_points=Sum("game_scores__score"))
-        .filter(total_points__gt=0)
-        .order_by("-total_points")
-        .distinct()
-)
+        CustomUser.objects
+            .filter(game_scores__is_participated=True)
+            .annotate(
+                total_points=Sum("game_scores__score"),
+                earliest_completion=Min(
+                    Case(
+                        When(game_scores__is_completed=True, game_scores__completed_at__isnull=False, 
+                             then='game_scores__completed_at'),
+                        default=None,
+                        output_field=models.DateTimeField()
+                    )
+                ),
+                has_completed=Max(
+                    Case(
+                        When(game_scores__is_completed=True, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                )
+            )
+            .filter(total_points__gt=0)
+            .order_by(
+                '-total_points',           # First: Sort by total points (descending)
+                '-has_completed',          # Second: Completed users first
+                'earliest_completion'      # Third: Earlier completion time first
+            )
+            .distinct()
+    )
 
 
     print("all user",all_users)
@@ -97,6 +164,26 @@ def events_view(request):
     })
 
 
+@login_required(login_url='/api/users/signin/')
+def all_agendas_view(request):
+    """Display all agendas in a table format"""
+    # Get user from session
+    user_id = request.session.get('user_id')
+    if user_id:
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            user = request.user
+    else:
+        user = request.user
+    
+    # Get all agendas ordered by date and start_time
+    agendas = Agenda.objects.all().order_by('date', 'start_time')
+    
+    return render(request, 'all_agendas.html', {
+        'user': user,
+        'agendas': agendas,
+    })
 
 
 def submit_qr(request):
@@ -150,6 +237,8 @@ def submit_qr(request):
                 if user_game_score.is_participated:
                     return JsonResponse({"status": "info", "message": "You have already participated in this game."})
                 user_game_score.is_participated = True
+                if not user_game_score.participated_at:
+                    user_game_score.participated_at = timezone.now()
                 user_game_score.score += score
                 user_game_score.save()
                 return JsonResponse({"status": "success", "message": "Participation recorded successfully."})
@@ -164,6 +253,8 @@ def submit_qr(request):
                         "message": "You have already completed this game."
                     })
                 user_game_score.is_completed = True
+                if not user_game_score.completed_at:
+                    user_game_score.completed_at = timezone.now()
                 user_game_score.score += score
                 user_game_score.save()
                 return JsonResponse({"status": "success", "score": user_game_score.score, "message": "Game completed successfully."})
@@ -296,8 +387,18 @@ def add_comment(request, post_id):
 def post_detail(request, post_id):
     """Get post details for the detail modal"""
     try:
+        # Get user from session or fallback to request.user
         user_id = request.session.get('user_id')
-        user = CustomUser.objects.get(id=user_id)
+        if user_id:
+            try:
+                user = CustomUser.objects.get(id=user_id)
+            except CustomUser.DoesNotExist:
+                # Session user_id doesn't exist, use request.user instead
+                user = request.user
+        else:
+            # No session user_id, use request.user from @login_required
+            user = request.user
+        
         post = Posts.objects.get(id=post_id)
         post.is_liked_by_user = post.likes.filter(user=user).exists()
         
@@ -317,6 +418,8 @@ def post_detail(request, post_id):
         })
     except Posts.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Post not found"}, status=404)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "User not found"}, status=404)
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
     

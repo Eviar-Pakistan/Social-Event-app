@@ -112,6 +112,7 @@ def signup(request):
 
             user = authenticate(request, email=email, password=password)
             request.session['user_id'] = user.id
+            request.session.save()
 
             if user is not None:
                 login(request, user)

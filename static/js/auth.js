@@ -140,7 +140,9 @@ signupBtn &&
       return;
     }
 
-    const selfie = await toBase64(selfieInput.files[0]);
+    // Compress image before converting to base64
+    const compressedFile = await compressImage(selfieInput.files[0], 800, 800, 0.7);
+    const selfie = await toBase64(compressedFile);
     const payload = {
       username,
       email,
